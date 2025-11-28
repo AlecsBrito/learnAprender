@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Gerar Quiz</h2>
+  <form method="post">{% csrf_token %}
+    <div class="mb-3">
+      <label>Tema/Categoria</label>
+      <input class="form-control" name="theme" placeholder="ex: food, travel">
+    </div>
+    <div class="mb-3">
+      <label>Nível</label>
+      <input class="form-control" name="level" placeholder="iniciante/intermediate">
+    </div>
+    <div class="mb-3">
+      <label>Quantidade de perguntas</label>
+      <input class="form-control" name="count" value="10" type="number">
+    </div>
+    <button class="btn btn-primary" type="submit">Gerar</button>
+  </form>
+{% endblock %}

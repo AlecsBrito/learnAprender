@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Desempenho de {{ user.username }}</h2>
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>Total de Tentativas</h5>
+          <h3>{{ total_attempts }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>Acertos</h5>
+          <h3>{{ correct }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>Taxa de Acerto</h5>
+          <h3>{{ accuracy }}%</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5>Últimos 7 dias</h5>
+          <h3>{{ recent_attempts }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3>Desempenho por Categoria</h3>
+  <table class="table">
+    <thead><tr><th>Categoria</th><th>Total</th><th>Corretos</th><th>Taxa</th></tr></thead>
+    <tbody>
+      {% for cat, stats in category_stats.items %}
+        <tr>
+          <td>{{ cat }}</td>
+          <td>{{ stats.total }}</td>
+          <td>{{ stats.correct }}</td>
+          <td>{% if stats.total > 0 %}{{ stats.correct|add:"0"|multiply:"100"|divide:stats.total|floatformat:"1" }}%{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Últimos Quizzes (Top 20)</h3>
+  <table class="table">
+    <thead><tr><th>Quiz</th><th>Pontuação</th><th>Data</th></tr></thead>
+    <tbody>
+      {% for qr in quiz_results %}
+        <tr>
+          <td>{{ qr.quiz.title }}</td>
+          <td>{{ qr.score }}%</td>
+          <td>{{ qr.taken_at|date:"d/m/Y H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Nenhum quiz realizado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><a class="btn btn-secondary" href="{% url 'panel_metrics:dashboard' %}">Voltar</a></p>
+{% endblock %}

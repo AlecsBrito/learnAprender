@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{% if object %}Editar{% else %}Adicionar{% endif %} Vocabulário</h2>
+  <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary" type="submit">Salvar</button>
+    <a class="btn btn-secondary" href="{% url 'panel:vocab_list' %}">Cancelar</a>
+  </form>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h3>Gerar exercícios a partir de "{{ vocab.word }}"</h3>
+  <p>Isso irá criar exercícios (translate, MCQ e possivelmente gap-fill) baseados neste item de vocabulário. Deseja prosseguir?</p>
+  <form method="post" action="{% url 'vocab:generate_exercises' vocab.pk %}">{% csrf_token %}
+    <button class="btn btn-danger" type="submit">Gerar exercícios</button>
+    <a class="btn btn-secondary" href="{% url 'vocab:detail' vocab.pk %}">Cancelar</a>
+  </form>
+{% endblock %}

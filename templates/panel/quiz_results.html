@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Resultados de Testes</h2>
+
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-4"><input class="form-control" name="user" placeholder="Usuário" value="{{ user_filter }}"></div>
+    <div class="col-md-4"><input class="form-control" name="quiz" placeholder="Teste" value="{{ quiz_filter }}"></div>
+    <div class="col-md-2"><button class="btn btn-outline-secondary">Filtrar</button></div>
+  </form>
+
+  <table class="table table-sm">
+    <thead><tr><th>Usuário</th><th>Teste</th><th>Pontuação (%)</th><th>Data</th></tr></thead>
+    <tbody>
+      {% for r in page_obj %}
+        <tr>
+          <td>{{ r.user.username }}</td>
+          <td>{{ r.quiz.title }}</td>
+          <td>
+            {% if r.score >= 80 %}
+              <span class="badge bg-success">{{ r.score|floatformat:0 }}%</span>
+            {% elif r.score >= 60 %}
+              <span class="badge bg-warning">{{ r.score|floatformat:0 }}%</span>
+            {% else %}
+              <span class="badge bg-danger">{{ r.score|floatformat:0 }}%</span>
+            {% endif %}
+          </td>
+          <td>{{ r.taken_at|date:"d/m/Y H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">Nenhum resultado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_other_pages %}
+    <nav><ul class="pagination">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>{% endif %}
+    </ul></nav>
+  {% endif %}
+
+  <p><a class="btn btn-secondary" href="{% url 'panel_metrics:dashboard' %}">Voltar</a></p>
+{% endblock %}

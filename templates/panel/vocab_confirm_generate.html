@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h3>Gerar exercícios</h3>
+  <p>Gerar exercícios a partir de "{{ object.word }}"?</p>
+  <form method="post">{% csrf_token %}
+    <button class="btn btn-danger" type="submit">Gerar</button>
+    <a class="btn btn-secondary" href="{% url 'panel:vocab_list' %}">Cancelar</a>
+  </form>
+{% endblock %}

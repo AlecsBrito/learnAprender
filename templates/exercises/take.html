@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Exercício</h2>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">{{ exercise.get_exercise_type_display }}</h5>
+      <p class="card-text">{{ exercise.question }}</p>
+
+      <form method="post">{% csrf_token %}
+        {% if exercise.exercise_type == 'mcq' %}
+          {% for c in exercise.choices %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="choice" id="c{{ forloop.counter }}" value="{{ c }}">
+              <label class="form-check-label" for="c{{ forloop.counter }}">{{ c }}</label>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="mb-3">
+            <input class="form-control" name="answer" placeholder="Sua resposta">
+          </div>
+        {% endif %}
+        <button class="btn btn-primary" type="submit">Enviar</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

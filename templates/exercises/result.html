@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Resultado</h2>
+  {% if correct %}
+    <div class="alert alert-success">Correto! ✔</div>
+  {% else %}
+    <div class="alert alert-danger">Incorreto. ✖</div>
+    <p><strong>Resposta esperada:</strong> {{ exercise.answer }}</p>
+    <p><strong>Sua resposta:</strong> {{ user_answer }}</p>
+  {% endif %}
+  <a class="btn btn-secondary" href="{% url 'exercises:list' %}">Voltar aos exercícios</a>
+{% endblock %}

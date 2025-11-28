@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h3>Gerar exercícios para todo o vocabulário</h3>
+  <p>Isso irá criar múltiplos exercícios com base em todas as entradas de vocabulário. A operação pode demorar dependendo do tamanho do vocabulário.</p>
+  <form method="post" action="{% url 'vocab:generate_all_exercises' %}">{% csrf_token %}
+    <button class="btn btn-danger" type="submit">Gerar para todo vocabulário</button>
+    <a class="btn btn-secondary" href="{% url 'vocab:list' %}">Cancelar</a>
+  </form>
+{% endblock %}

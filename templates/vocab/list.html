@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Vocabulário</h2>
+  <div class="mb-3">
+    <a class="btn btn-success" href="{% url 'vocab:add' %}">Adicionar palavra</a>
+  </div>
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-4"><input class="form-control" name="q" placeholder="Buscar..." value="{{ request.GET.q }}"></div>
+    <div class="col-md-3"><input class="form-control" name="category" placeholder="Categoria" value="{{ request.GET.category }}"></div>
+    <div class="col-md-2">
+      <select name="level" class="form-select">
+        <option value="">Todos os níveis</option>
+        <option value="beginner" {% if request.GET.level == 'beginner' %}selected{% endif %}>Iniciante</option>
+        <option value="intermediate" {% if request.GET.level == 'intermediate' %}selected{% endif %}>Intermediário</option>
+      </select>
+    </div>
+    <div class="col-md-1"><button class="btn btn-primary">Filtrar</button></div>
+  </form>
+
+  <table class="table">
+    <thead><tr><th>Palavra</th><th>Tradução</th><th>Categoria</th><th>Nível</th><th></th></tr></thead>
+    <tbody>
+      {% for item in object_list %}
+        <tr>
+          <td><a href="{% url 'vocab:detail' item.pk %}">{{ item.word }}</a></td>
+          <td>{{ item.translation }}</td>
+          <td>{{ item.category }}</td>
+          <td>{{ item.get_level_display }}</td>
+          <td><a class="btn btn-sm btn-outline-secondary" href="{% url 'vocab:edit' item.pk %}">Editar</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">Nenhuma palavra encontrada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{{ object.word }}</h2>
+  <p><strong>Tradução:</strong> {{ object.translation }}</p>
+  <p><strong>Exemplo:</strong> {{ object.example }}</p>
+  <p><strong>Categoria:</strong> {{ object.category }}</p>
+  <p><strong>Nível:</strong> {{ object.get_level_display }}</p>
+  <p><strong>Tags:</strong> {{ object.tags }}</p>
+  <a class="btn btn-primary" href="{% url 'vocab:edit' object.pk %}">Editar</a>
+  <a class="btn btn-danger" href="{% url 'vocab:delete' object.pk %}">Remover</a>
+
+  <form method="post" action="{% url 'vocab:generate_exercises' object.pk %}" style="display:inline">{% csrf_token %}
+    <button class="btn btn-outline-success">Gerar exercícios</button>
+  </form>
+
+{% endblock %}

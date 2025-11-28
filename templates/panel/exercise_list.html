@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Painel — Exercícios</h2>
+  <p><a class="btn btn-primary" href="{% url 'panel_exercises:exercise_add' %}">Adicionar exercício</a></p>
+
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-3"><input class="form-control" name="q" placeholder="Buscar..." value="{{ q }}"></div>
+    <div class="col-md-2">
+      <select name="type" class="form-select">
+        <option value="">Todos os tipos</option>
+        <option value="mcq" {% if etype == 'mcq' %}selected{% endif %}>MCQ</option>
+        <option value="gap" {% if etype == 'gap' %}selected{% endif %}>Gap</option>
+        <option value="translate" {% if etype == 'translate' %}selected{% endif %}>Tradução</option>
+      </select>
+    </div>
+    <div class="col-md-2"><input class="form-control" name="level" placeholder="Nível" value="{{ level }}"></div>
+    <div class="col-md-2"><input class="form-control" name="category" placeholder="Categoria" value="{{ category }}"></div>
+    <div class="col-md-1"><button class="btn btn-outline-secondary">Filtrar</button></div>
+  </form>
+
+  <form method="post">{% csrf_token %}
+    <div class="mb-2">
+      <select name="action" class="form-select" style="width:auto;display:inline">
+        <option value="">Ação...</option>
+        <option value="delete">Remover</option>
+      </select>
+      <button class="btn btn-sm btn-warning">Aplicar</button>
+    </div>
+
+    <table class="table">
+      <thead><tr><th><input type="checkbox" id="select-all"></th><th>Tipo</th><th>Pergunta</th><th>Categoria</th><th>Nível</th><th></th></tr></thead>
+      <tbody>
+        {% for o in page_obj %}
+          <tr>
+            <td><input class="row-check" type="checkbox" name="selected" value="{{ o.pk }}"></td>
+            <td>{{ o.get_exercise_type_display }}</td>
+            <td>{{ o.question|truncatechars:80 }}</td>
+            <td>{{ o.category }}</td>
+            <td>{{ o.level }}</td>
+            <td>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'panel_exercises:exercise_edit' o.pk %}">Editar</a>
+              <a class="btn btn-sm btn-outline-danger" href="{% url 'panel_exercises:exercise_delete' o.pk %}">Remover</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6">Nenhum exercício.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </form>
+
+  {% if page_obj.has_other_pages %}
+    <nav><ul class="pagination">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a></li>{% endif %}
+    </ul></nav>
+  {% endif %}
+
+  <script>
+    document.getElementById('select-all').addEventListener('change', function() {
+      document.querySelectorAll('.row-check').forEach(e => e.checked = this.checked);
+    });
+  </script>
+{% endblock %}

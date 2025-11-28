@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Perfil</h2>
+  <p><strong>Usuário:</strong> {{ user.username }}</p>
+  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p><strong>Nível:</strong> {{ user.profile.get_level_display }}</p>
+  <p><strong>Objetivos:</strong> {{ user.profile.objectives }}</p>
+{% endblock %}

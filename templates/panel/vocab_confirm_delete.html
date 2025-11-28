@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h3>Remover Vocabulário</h3>
+  <p>Confirma remoção de "{{ object.word }}"?</p>
+  <form method="post">{% csrf_token %}
+    <button class="btn btn-danger" type="submit">Remover</button>
+    <a class="btn btn-secondary" href="{% url 'panel:vocab_list' %}">Cancelar</a>
+  </form>
+{% endblock %}
