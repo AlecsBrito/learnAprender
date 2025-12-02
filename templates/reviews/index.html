@@ -1,5 +1,37 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Revisões Agendadas</h2>
-  <p>Aqui aparecem itens com maior taxa de erro e suas revisões agendadas.</p>
+  <h2>Área de Revisão</h2>
+  <p>Acompanhe seu desempenho e revise palavras problemáticas.</p>
+  
+  <div class="row mt-4">
+    <div class="col-md-6 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">📊 Meu Progresso</h5>
+          <p class="card-text">Veja sua precisão geral, acertos por categoria e histórico de atividades.</p>
+          <a class="btn btn-primary" href="{% url 'reviews:progress' %}">Ver Progresso</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">⚠️ Palavras com Mais Erros</h5>
+          <p class="card-text">Identifique vocabulário e exercícios que você tem dificuldade.</p>
+          <a class="btn btn-warning" href="{% url 'reviews:high_error_words' %}">Ver Palavras</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">📅 Minhas Revisões Agendadas</h5>
+          <p class="card-text">Veja todas as revisões que você agendou por data.</p>
+          <a class="btn btn-info" href="{% url 'reviews:scheduled_reviews' %}">Ver Agendamentos</a>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
