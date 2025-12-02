@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Progresso de Aprendizado{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>📊 Seu Progresso de Aprendizado</h1>
+    
+    <!-- Overall Statistics -->
+    <div class="row mt-4 mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Exercícios Tentados</h6>
+                    <h2 class="text-primary">{{ total_attempts }}</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Acertos</h6>
+                    <h2 class="text-success">{{ correct_attempts }}</h2>
+                    <small class="text-muted">{{ incorrect_attempts }} erros</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Taxa de Acerto</h6>
+                    <h2 class="text-info">{{ accuracy|floatformat:1 }}%</h2>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card text-center bg-light">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Quizzes Completados</h6>
+                    <h2 class="text-warning">{{ total_quizzes }}</h2>
+                    {% if avg_quiz_score %}
+                    <small class="text-muted">Média: {{ avg_quiz_score|floatformat:1 }}%</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Performance by Category -->
+    {% if category_stats %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">📚 Desempenho por Categoria</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Categoria</th>
+                            <th>Tentativas</th>
+                            <th>Acertos</th>
+                            <th>Taxa de Acerto</th>
+                            <th>Progresso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in category_stats %}
+                        <tr>
+                            <td><strong>{{ stat.category }}</strong></td>
+                            <td>{{ stat.attempts }}</td>
+                            <td><span class="badge bg-success">{{ stat.correct }}</span></td>
+                            <td>{{ stat.accuracy|floatformat:1 }}%</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ stat.accuracy }}%;" 
+                                         aria-valuenow="{{ stat.accuracy }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        <small>{{ stat.accuracy|floatformat:0 }}%</small>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Performance by Exercise Type -->
+    {% if type_stats %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">🎯 Desempenho por Tipo de Exercício</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for stat in type_stats %}
+                <div class="col-md-4 mb-3">
+                    <div class="card border-0 bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ stat.type }}</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>{{ stat.attempts }} tentativas</span>
+                                <strong>{{ stat.accuracy|floatformat:1 }}%</strong>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ stat.accuracy }}%;" 
+                                     aria-valuenow="{{ stat.accuracy }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                {{ stat.correct }} acertos, {{ stat.attempts|add:stat.correct|add:"-1" }} erros
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Recent Activity -->
+    <div class="row">
+        {% if recent_attempts %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📝 Últimos Exercícios</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for attempt in recent_attempts %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <a href="{% url 'exercises:detail' attempt.exercise.id %}">
+                                            {{ attempt.exercise.content|truncatewords:5 }}
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">
+                                        {% if attempt.exercise.category %}
+                                            {{ attempt.exercise.category }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge {% if attempt.correct %}bg-success{% else %}bg-danger{% endif %}">
+                                    {% if attempt.correct %}✓{% else %}✗{% endif %}
+                                </span>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                {{ attempt.timestamp|timesince }} atrás
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if recent_quizzes %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">🧪 Últimos Quizzes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for quiz_result in recent_quizzes %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <a href="{% url 'quizzes:detail' quiz_result.quiz.id %}">
+                                            {{ quiz_result.quiz.title }}
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">
+                                        {{ quiz_result.questions_answered }} / {{ quiz_result.quiz.total_questions }} questões
+                                    </small>
+                                </div>
+                                <span class="badge bg-info">{{ quiz_result.score|floatformat:0 }}%</span>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                {{ quiz_result.taken_at|timesince }} atrás
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="mt-5 mb-3">
+        <a href="{% url 'exercises:list' %}" class="btn btn-primary">
+            <i class="fas fa-book"></i> Voltar aos Exercícios
+        </a>
+        <a href="{% url 'quizzes:list' %}" class="btn btn-secondary">
+            <i class="fas fa-pencil-alt"></i> Fazer Quiz
+        </a>
+    </div>
+</div>
+{% endblock %}

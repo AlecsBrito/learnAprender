@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Agendar Revisão: {{ vocab.word }}</h2>
+  
+  <div class="card mb-3">
+    <div class="card-body">
+      <p><strong>Palavra:</strong> {{ vocab.word }}</p>
+      <p><strong>Tradução:</strong> {{ vocab.translation }}</p>
+      {% if vocab.example %}
+        <p><strong>Exemplo:</strong> {{ vocab.example }}</p>
+      {% endif %}
+    </div>
+  </div>
+  
+  <form method="post">{% csrf_token %}
+    <div class="mb-3">
+      <label for="days_offset" class="form-label">Revisar em:</label>
+      <select name="days_offset" id="days_offset" class="form-select">
+        <option value="1">Amanhã</option>
+        <option value="3">Em 3 dias</option>
+        <option value="7">Em 1 semana</option>
+        <option value="14">Em 2 semanas</option>
+        <option value="30">Em 1 mês</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit">Agendar</button>
+    <a class="btn btn-secondary" href="{% url 'reviews:high_error_words' %}">Cancelar</a>
+  </form>
+{% endblock %}

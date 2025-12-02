@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{{ quiz.title }}</h2>
+  <p>
+    {% if quiz.is_shared %}
+      <span class="badge bg-info">Compartilhado</span>
+    {% else %}
+      <span class="badge bg-secondary">Pessoal</span>
+    {% endif %}
+  </p>
+  
+  {% if quiz.level %}
+    <p><strong>Nível:</strong> {{ quiz.level }}</p>
+  {% endif %}
+  {% if quiz.theme %}
+    <p><strong>Tema:</strong> {{ quiz.theme }}</p>
+  {% endif %}
+  
+  <p><strong>Perguntas:</strong> {{ quiz.questions.count }}</p>
+  
+  <div class="mb-3">
+    <a class="btn btn-primary" href="{% url 'quizzes:take' quiz.pk %}">Fazer Quiz</a>
+    {% if can_edit %}
+      <a class="btn btn-warning" href="{% url 'quizzes:edit' quiz.pk %}">Editar</a>
+      <a class="btn btn-danger" href="{% url 'quizzes:delete' quiz.pk %}">Remover</a>
+    {% else %}
+      <p class="text-muted"><em>Você não pode editar quiz compartilhado criado por outros usuários.</em></p>
+    {% endif %}
+  </div>
+  
+  {% if quiz.questions.count > 0 %}
+    <h4>Perguntas</h4>
+    <div class="list-group">
+      {% for q in questions %}
+        <div class="list-group-item">
+          <p><strong>{{ forloop.counter }}. {{ q.question }}</strong></p>
+          <p><small class="text-muted">{{ q.get_exercise_type_display }}</small></p>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">Nenhuma pergunta neste quiz.</p>
+  {% endif %}
+  
+  <a class="btn btn-secondary mt-3" href="{% url 'quizzes:index' %}">Voltar</a>
+{% endblock %}

@@ -4,7 +4,18 @@
   <div class="mb-3">
     <a class="btn btn-success" href="{% url 'vocab:add' %}">Adicionar palavra</a>
   </div>
+
+  <div class="btn-group mb-3" role="group">
+    <a class="btn {% if vocab_type == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+       href="{% url 'vocab:list' %}?vocab_type=all">Todos</a>
+    <a class="btn {% if vocab_type == 'personal' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+       href="{% url 'vocab:list' %}?vocab_type=personal">Pessoais</a>
+    <a class="btn {% if vocab_type == 'shared' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+       href="{% url 'vocab:list' %}?vocab_type=shared">Compartilhados</a>
+  </div>
+
   <form method="get" class="row g-2 mb-3">
+    <input type="hidden" name="vocab_type" value="{{ vocab_type }}">
     <div class="col-md-4"><input class="form-control" name="q" placeholder="Buscar..." value="{{ request.GET.q }}"></div>
     <div class="col-md-3"><input class="form-control" name="category" placeholder="Categoria" value="{{ request.GET.category }}"></div>
     <div class="col-md-2">
@@ -18,7 +29,7 @@
   </form>
 
   <table class="table">
-    <thead><tr><th>Palavra</th><th>Tradução</th><th>Categoria</th><th>Nível</th><th></th></tr></thead>
+    <thead><tr><th>Palavra</th><th>Tradução</th><th>Categoria</th><th>Nível</th><th>Status</th><th></th></tr></thead>
     <tbody>
       {% for item in object_list %}
         <tr>
@@ -26,10 +37,23 @@
           <td>{{ item.translation }}</td>
           <td>{{ item.category }}</td>
           <td>{{ item.get_level_display }}</td>
-          <td><a class="btn btn-sm btn-outline-secondary" href="{% url 'vocab:edit' item.pk %}">Editar</a></td>
+          <td>
+            {% if item.is_shared %}
+              <span class="badge bg-info">Compartilhado</span>
+            {% else %}
+              <span class="badge bg-secondary">Pessoal</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.created_by == user or user.is_staff %}
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'vocab:edit' item.pk %}">Editar</a>
+            {% else %}
+              <span class="text-muted">–</span>
+            {% endif %}
+          </td>
         </tr>
       {% empty %}
-        <tr><td colspan="5">Nenhuma palavra encontrada.</td></tr>
+        <tr><td colspan="6">Nenhuma palavra encontrada.</td></tr>
       {% endfor %}
     </tbody>
   </table>

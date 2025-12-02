@@ -8,10 +8,12 @@ class Quiz(models.Model):
     theme = models.CharField(max_length=100, blank=True)
     questions = models.ManyToManyField('exercises.Exercise', blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    is_shared = models.BooleanField(default=False, help_text='Se marcado, quiz é disponível para todos os usuários')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.title
+        shared_str = ' (compartilhado)' if self.is_shared else ''
+        return f"{self.title}{shared_str}"
 
 
 class QuizResult(models.Model):

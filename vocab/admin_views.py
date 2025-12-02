@@ -15,12 +15,18 @@ def vocab_list_admin(request):
     q = request.GET.get('q')
     level = request.GET.get('level')
     category = request.GET.get('category')
+    shared_filter = request.GET.get('shared')  # 'shared', 'personal', or None for all
+    
     if q:
         qs = qs.filter(word__icontains=q) | qs.filter(translation__icontains=q)
     if level:
         qs = qs.filter(level=level)
     if category:
         qs = qs.filter(category__icontains=category)
+    if shared_filter == 'shared':
+        qs = qs.filter(is_shared=True)
+    elif shared_filter == 'personal':
+        qs = qs.filter(is_shared=False)
 
     # Pagination
     from django.core.paginator import Paginator
@@ -53,7 +59,10 @@ def vocab_list_admin(request):
             messages.success(request, f'Gerados {total} exercícios.')
             return redirect('panel:vocab_list')
 
-    return render(request, 'panel/vocab_list.html', {'page_obj': page_obj, 'q': q, 'level': level, 'category': category})
+    return render(request, 'panel/vocab_list.html', {
+        'page_obj': page_obj, 'q': q, 'level': level, 'category': category,
+        'shared_filter': shared_filter
+    })
 
 
 @staff_member_required
