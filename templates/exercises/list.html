@@ -1,14 +1,29 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Exercícios</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-3">
+      <h2 class="mb-0">Exercícios</h2>
+      <a class="btn btn-success" href="{% url 'exercises:create' %}">+ Novo Exercício</a>
+    </div>
+
+    <div>
+      <div class="btn-group" role="group" aria-label="Filtros">
+        <a class="btn {% if done_filter == '' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'exercises:list' %}?done=">Todos</a>
+        <a class="btn {% if done_filter == 'done' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'exercises:list' %}?done=done">Realizados</a>
+        <a class="btn {% if done_filter == 'undone' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'exercises:list' %}?done=undone">Pendentes</a>
+      </div>
+    </div>
+  </div>
+
   <form method="get" class="row g-2 mb-3">
-    <div class="col-md-4"><input class="form-control" name="q" placeholder="Buscar..." value="{{ request.GET.q }}"></div>
+    <input type="hidden" name="done" value="{{ done_filter }}">
+    <div class="col-md-3"><input class="form-control" name="q" placeholder="Buscar..." value="{{ request.GET.q }}"></div>
     <div class="col-md-2">
-      <select name="type" class="form-select">
+      <select name="exercise_type" class="form-select">
         <option value="">Todos os tipos</option>
-        <option value="mcq" {% if request.GET.type == 'mcq' %}selected{% endif %}>Múltipla escolha</option>
-        <option value="gap" {% if request.GET.type == 'gap' %}selected{% endif %}>Preencher lacuna</option>
-        <option value="translate" {% if request.GET.type == 'translate' %}selected{% endif %}>Tradução</option>
+        <option value="mcq" {% if request.GET.exercise_type == 'mcq' %}selected{% endif %}>Múltipla escolha</option>
+        <option value="gap" {% if request.GET.exercise_type == 'gap' %}selected{% endif %}>Preencher lacuna</option>
+        <option value="translate" {% if request.GET.exercise_type == 'translate' %}selected{% endif %}>Tradução</option>
       </select>
     </div>
     <div class="col-md-2"><input class="form-control" name="category" placeholder="Categoria" value="{{ request.GET.category }}"></div>
@@ -17,14 +32,30 @@
   </form>
 
   <ul class="list-group">
-    {% for ex in object_list %}
+    {% for ex in page_obj %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
         <div>
           <strong>{{ ex.get_exercise_type_display }}</strong> — {{ ex.question|truncatechars:120 }}
-          <div class="small text-muted">Categoria: {{ ex.category }} | Nível: {{ ex.level }}</div>
+          <div class="small text-muted">
+            Categoria: {{ ex.category }} | Nível: {{ ex.level }}
+            {% if ex.is_shared %}
+              | <span class="badge bg-info">Compartilhado</span>
+            {% else %}
+              | <span class="badge bg-secondary">Pessoal</span>
+            {% endif %}
+            {% if ex.is_done %}
+              | <span class="badge bg-success">✓ Realizado</span>
+            {% else %}
+              | <span class="badge bg-warning">Pendente</span>
+            {% endif %}
+          </div>
         </div>
-        <div>
-          <a class="btn btn-sm btn-outline-primary" href="{% url 'exercises:take' ex.pk %}">Fazer</a>
+        <div class="btn-group btn-group-sm" role="group">
+          <a class="btn btn-outline-primary" href="{% url 'exercises:take' ex.pk %}">Fazer</a>
+          {% if user == ex.created_by or user.is_staff %}
+            <a class="btn btn-outline-warning" href="{% url 'exercises:edit' ex.pk %}">Editar</a>
+            <a class="btn btn-outline-danger" href="{% url 'exercises:delete' ex.pk %}">Remover</a>
+          {% endif %}
         </div>
       </li>
     {% empty %}

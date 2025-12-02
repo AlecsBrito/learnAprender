@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Palavras com Mais Erros</h2>
+  <p>Palavras em que você tem tido mais dificuldade. Vamos revisar?</p>
+  
+  {% if high_error_words %}
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Palavra</th>
+            <th>Tradução</th>
+            <th>Categoria</th>
+            <th>Tentativas</th>
+            <th>Erros</th>
+            <th>Taxa de Erro</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in high_error_words %}
+            <tr>
+              <td><strong>{{ item.vocab.word }}</strong></td>
+              <td>{{ item.vocab.translation }}</td>
+              <td><span class="badge bg-secondary">{{ item.vocab.category }}</span></td>
+              <td>{{ item.attempts }}</td>
+              <td><span class="badge bg-danger">{{ item.errors }}</span></td>
+              <td>
+                <div class="progress" style="min-width: 100px">
+                  <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="{{ item.error_rate }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ item.error_rate }}%">
+                    {{ item.error_rate|floatformat:0 }}%
+                  </div>
+                </div>
+              </td>
+              <td>
+                <a class="btn btn-sm btn-primary" href="{% url 'reviews:schedule_review' item.vocab.id %}">Agendar Revisão</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      <p>Parabéns! Você está indo bem. Nenhuma palavra com taxa de erro significativa.</p>
+    </div>
+  {% endif %}
+  
+  <a class="btn btn-secondary mt-3" href="{% url 'reviews:index' %}">Voltar</a>
+{% endblock %}

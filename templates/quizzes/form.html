@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{% if quiz %}Editar{% else %}Criar{% endif %} Quiz</h2>
+  
+  <form method="post">{% csrf_token %}
+    {% for field in form %}
+      <div class="mb-3">
+        {{ field.label_tag }}
+        {% if field.field.widget.input_type == 'checkbox' %}
+          <div>{{ field }}</div>
+        {% else %}
+          {{ field }}
+        {% endif %}
+        {% if field.help_text %}
+          <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+        {% endif %}
+        {% if field.errors %}
+          <div class="alert alert-danger">{{ field.errors }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit">Salvar</button>
+    <a class="btn btn-secondary" href="{% url 'quizzes:index' %}">Cancelar</a>
+  </form>
+{% endblock %}

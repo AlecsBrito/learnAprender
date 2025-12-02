@@ -4,7 +4,7 @@
   <p><a class="btn btn-primary" href="{% url 'panel:vocab_add' %}">Adicionar</a></p>
 
   <form method="get" class="row g-2 mb-3">
-    <div class="col-md-4"><input class="form-control" name="q" placeholder="Buscar..." value="{{ q }}"></div>
+    <div class="col-md-3"><input class="form-control" name="q" placeholder="Buscar..." value="{{ q }}"></div>
     <div class="col-md-2">
       <select name="level" class="form-select">
         <option value="">Todos os níveis</option>
@@ -13,7 +13,14 @@
       </select>
     </div>
     <div class="col-md-2"><input class="form-control" name="category" placeholder="Categoria" value="{{ category }}"></div>
-    <div class="col-md-2"><button class="btn btn-outline-secondary">Filtrar</button></div>
+    <div class="col-md-2">
+      <select name="shared" class="form-select">
+        <option value="">Todos</option>
+        <option value="shared" {% if shared_filter == 'shared' %}selected{% endif %}>Compartilhados</option>
+        <option value="personal" {% if shared_filter == 'personal' %}selected{% endif %}>Pessoais</option>
+      </select>
+    </div>
+    <div class="col-md-1"><button class="btn btn-outline-secondary">Filtrar</button></div>
   </form>
 
   <form method="post">{% csrf_token %}
@@ -27,7 +34,7 @@
     </div>
 
     <table class="table">
-      <thead><tr><th><input type="checkbox" id="select-all"></th><th>Palavra</th><th>Tradução</th><th>Categoria</th><th>Nível</th><th></th></tr></thead>
+      <thead><tr><th><input type="checkbox" id="select-all"></th><th>Palavra</th><th>Tradução</th><th>Categoria</th><th>Nível</th><th>Status</th><th></th></tr></thead>
       <tbody>
         {% for o in page_obj %}
           <tr>
@@ -37,12 +44,19 @@
             <td>{{ o.category }}</td>
             <td>{{ o.get_level_display }}</td>
             <td>
+              {% if o.is_shared %}
+                <span class="badge bg-info">Compartilhado</span>
+              {% else %}
+                <span class="badge bg-secondary">Pessoal</span>
+              {% endif %}
+            </td>
+            <td>
               <a class="btn btn-sm btn-outline-secondary" href="{% url 'panel:vocab_edit' o.pk %}">Editar</a>
               <a class="btn btn-sm btn-outline-danger" href="{% url 'panel:vocab_delete' o.pk %}">Remover</a>
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="6">Nenhuma entrada.</td></tr>
+          <tr><td colspan="7">Nenhuma entrada.</td></tr>
         {% endfor %}
       </tbody>
     </table>

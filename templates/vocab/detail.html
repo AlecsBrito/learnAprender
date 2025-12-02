@@ -1,13 +1,29 @@
 {% extends 'base.html' %}
 {% block content %}
   <h2>{{ object.word }}</h2>
+  <p>
+    {% if object.is_shared %}
+      <span class="badge bg-info">Compartilhado</span>
+    {% else %}
+      <span class="badge bg-secondary">Pessoal</span>
+    {% endif %}
+  </p>
   <p><strong>Tradução:</strong> {{ object.translation }}</p>
   <p><strong>Exemplo:</strong> {{ object.example }}</p>
   <p><strong>Categoria:</strong> {{ object.category }}</p>
   <p><strong>Nível:</strong> {{ object.get_level_display }}</p>
   <p><strong>Tags:</strong> {{ object.tags }}</p>
-  <a class="btn btn-primary" href="{% url 'vocab:edit' object.pk %}">Editar</a>
-  <a class="btn btn-danger" href="{% url 'vocab:delete' object.pk %}">Remover</a>
+  
+  {% if user.is_authenticated %}
+    {% if object.created_by == user or user.is_staff %}
+      <a class="btn btn-primary" href="{% url 'vocab:edit' object.pk %}">Editar</a>
+      <a class="btn btn-danger" href="{% url 'vocab:delete' object.pk %}">Remover</a>
+    {% else %}
+      <p class="text-muted"><em>Você não pode editar vocabulário compartilhado criado por outros usuários.</em></p>
+    {% endif %}
+  {% else %}
+    <p><a href="{% url 'accounts:login' %}">Faça login</a> para editar.</p>
+  {% endif %}
 
   <form method="post" action="{% url 'vocab:generate_exercises' object.pk %}" style="display:inline">{% csrf_token %}
     <button class="btn btn-outline-success">Gerar exercícios</button>

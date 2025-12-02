@@ -12,6 +12,8 @@ def exercise_list_admin(request):
     etype = request.GET.get('type')
     level = request.GET.get('level')
     category = request.GET.get('category')
+    shared_filter = request.GET.get('shared')
+    
     if q:
         qs = qs.filter(question__icontains=q) | qs.filter(answer__icontains=q)
     if etype:
@@ -20,6 +22,10 @@ def exercise_list_admin(request):
         qs = qs.filter(level__icontains=level)
     if category:
         qs = qs.filter(category__icontains=category)
+    if shared_filter == 'shared':
+        qs = qs.filter(is_shared=True)
+    elif shared_filter == 'personal':
+        qs = qs.filter(is_shared=False)
 
     # Pagination
     from django.core.paginator import Paginator
@@ -40,7 +46,10 @@ def exercise_list_admin(request):
             messages.success(request, f'Removidos {len(ids)} exercícios.')
             return redirect('panel_exercises:exercise_list')
 
-    return render(request, 'panel/exercise_list.html', {'page_obj': page_obj, 'q': q, 'etype': etype, 'level': level, 'category': category})
+    return render(request, 'panel/exercise_list.html', {
+        'page_obj': page_obj, 'q': q, 'etype': etype, 'level': level, 
+        'category': category, 'shared_filter': shared_filter
+    })
 
 
 @staff_member_required

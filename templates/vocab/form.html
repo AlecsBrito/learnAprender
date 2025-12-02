@@ -2,7 +2,31 @@
 {% block content %}
   <h2>{% if object %}Editar{% else %}Adicionar{% endif %} Palavra</h2>
   <form method="post">{% csrf_token %}
-    {{ form.as_p }}
+    {% for field in form %}
+      {% if field.name == 'is_shared' and not user.is_staff and object %}
+        <!-- Regular users cannot mark shared vocab as shared -->
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          <input type="checkbox" class="form-check-input" disabled title="Apenas administradores podem compartilhar vocabulário">
+          <small class="text-muted">Apenas administradores podem compartilhar vocabulário.</small>
+        </div>
+      {% else %}
+        <div class="mb-3">
+          {{ field.label_tag }}
+          {% if field.field.widget.input_type == 'checkbox' %}
+            <div>{{ field }}</div>
+          {% else %}
+            {{ field }}
+          {% endif %}
+          {% if field.help_text %}
+            <small class="form-text text-muted">{{ field.help_text|safe }}</small>
+          {% endif %}
+          {% if field.errors %}
+            <div class="alert alert-danger">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
     <button class="btn btn-primary" type="submit">Salvar</button>
     <a class="btn btn-secondary" href="{% url 'vocab:list' %}">Cancelar</a>
   </form>

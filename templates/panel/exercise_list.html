@@ -13,8 +13,15 @@
         <option value="translate" {% if etype == 'translate' %}selected{% endif %}>Tradução</option>
       </select>
     </div>
-    <div class="col-md-2"><input class="form-control" name="level" placeholder="Nível" value="{{ level }}"></div>
-    <div class="col-md-2"><input class="form-control" name="category" placeholder="Categoria" value="{{ category }}"></div>
+    <div class="col-md-1"><input class="form-control" name="level" placeholder="Nível" value="{{ level }}"></div>
+    <div class="col-md-1"><input class="form-control" name="category" placeholder="Cat" value="{{ category }}"></div>
+    <div class="col-md-2">
+      <select name="shared" class="form-select">
+        <option value="">Todos</option>
+        <option value="shared" {% if shared_filter == 'shared' %}selected{% endif %}>Compartilhados</option>
+        <option value="personal" {% if shared_filter == 'personal' %}selected{% endif %}>Pessoais</option>
+      </select>
+    </div>
     <div class="col-md-1"><button class="btn btn-outline-secondary">Filtrar</button></div>
   </form>
 
@@ -28,7 +35,7 @@
     </div>
 
     <table class="table">
-      <thead><tr><th><input type="checkbox" id="select-all"></th><th>Tipo</th><th>Pergunta</th><th>Categoria</th><th>Nível</th><th></th></tr></thead>
+      <thead><tr><th><input type="checkbox" id="select-all"></th><th>Tipo</th><th>Pergunta</th><th>Categoria</th><th>Nível</th><th>Status</th><th></th></tr></thead>
       <tbody>
         {% for o in page_obj %}
           <tr>
@@ -38,12 +45,19 @@
             <td>{{ o.category }}</td>
             <td>{{ o.level }}</td>
             <td>
+              {% if o.is_shared %}
+                <span class="badge bg-info">Compartilhado</span>
+              {% else %}
+                <span class="badge bg-secondary">Pessoal</span>
+              {% endif %}
+            </td>
+            <td>
               <a class="btn btn-sm btn-outline-secondary" href="{% url 'panel_exercises:exercise_edit' o.pk %}">Editar</a>
               <a class="btn btn-sm btn-outline-danger" href="{% url 'panel_exercises:exercise_delete' o.pk %}">Remover</a>
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="6">Nenhum exercício.</td></tr>
+          <tr><td colspan="7">Nenhum exercício.</td></tr>
         {% endfor %}
       </tbody>
     </table>

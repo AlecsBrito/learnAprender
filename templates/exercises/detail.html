@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>{{ object.question }}</h2>
+  <p>
+    <span class="badge bg-secondary">{{ object.get_exercise_type_display }}</span>
+    {% if object.level %}
+      <span class="badge bg-info">{{ object.level }}</span>
+    {% endif %}
+    {% if object.category %}
+      <span class="badge bg-warning">{{ object.category }}</span>
+    {% endif %}
+    {% if object.is_shared %}
+      <span class="badge bg-success">Compartilhado</span>
+    {% else %}
+      <span class="badge bg-secondary">Pessoal</span>
+    {% endif %}
+  </p>
+  
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Informações</h5>
+      <p><strong>Tipo:</strong> {{ object.get_exercise_type_display }}</p>
+      <p><strong>Resposta Correta:</strong> {{ object.answer }}</p>
+      {% if object.choices %}
+        <p><strong>Opções:</strong></p>
+        <ul>
+          {% for choice in object.choices %}
+            <li>{{ choice }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="mb-3">
+    <a class="btn btn-primary" href="{% url 'exercises:take' object.pk %}">Responder</a>
+    {% if user == object.created_by or user.is_staff %}
+      <a class="btn btn-warning" href="{% url 'exercises:edit' object.pk %}">Editar</a>
+      <a class="btn btn-danger" href="{% url 'exercises:delete' object.pk %}">Remover</a>
+    {% else %}
+      {% if object.is_shared %}
+        <p class="text-muted"><em>Você não pode editar exercício compartilhado criado por outros usuários.</em></p>
+      {% endif %}
+    {% endif %}
+  </div>
+  
+  <a class="btn btn-secondary" href="{% url 'exercises:list' %}">Voltar</a>
+{% endblock %}

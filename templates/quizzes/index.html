@@ -1,5 +1,44 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Quizzes</h2>
-  <p>Gere quizzes por tema ou nível a partir do vocabulário e exercícios.</p>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-0">Quizzes</h2>
+      <p class="text-muted mb-0">Gere quizzes por tema ou nível a partir do vocabulário e exercícios.</p>
+    </div>
+    <a class="btn btn-success" href="{% url 'quizzes:generate' %}">+ Gerar novo Quiz</a>
+  </div>
+
+  <h3>Quizzes Disponíveis</h3>
+  {% if quizzes %}
+    <ul class="list-group">
+      {% for quiz in quizzes %}
+        <li class="list-group-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <a href="{% url 'quizzes:detail' quiz.id %}" class="text-decoration-none">
+                <strong>{{ quiz.title }}</strong>
+              </a>
+              <div class="small text-muted">
+                Perguntas: {{ quiz.questions.count }} | Nível: {{ quiz.level }} | Tema: {{ quiz.theme }}
+                {% if quiz.is_shared %}
+                  | <span class="badge bg-info">Compartilhado</span>
+                {% else %}
+                  | <span class="badge bg-secondary">Pessoal</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="btn-group btn-group-sm ms-2" role="group">
+              <a class="btn btn-outline-primary" href="{% url 'quizzes:take' quiz.id %}">Fazer</a>
+              {% if quiz.created_by == user or user.is_staff %}
+                <a class="btn btn-outline-warning" href="{% url 'quizzes:edit' quiz.id %}">Editar</a>
+                <a class="btn btn-outline-danger" href="{% url 'quizzes:delete' quiz.id %}">Remover</a>
+              {% endif %}
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Nenhum quiz disponível. <a href="{% url 'quizzes:generate' %}">Gere um novo!</a></p>
+  {% endif %}
 {% endblock %}

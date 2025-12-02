@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Revisão Agendada</h2>
+  
+  <div class="alert alert-success">
+    <p>Revisão agendada com sucesso!</p>
+    <p><strong>{{ vocab.word }}</strong> foi agendada para <strong>{{ scheduled_at|date:"d/m/Y H:i" }}</strong></p>
+  </div>
+  
+  <a class="btn btn-primary" href="{% url 'reviews:scheduled_reviews' %}">Ver Minhas Revisões Agendadas</a>
+  <a class="btn btn-secondary" href="{% url 'reviews:high_error_words' %}">Voltar</a>
+{% endblock %}

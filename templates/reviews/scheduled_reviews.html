@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Minhas Revisões Agendadas</h2>
+  
+  <h4>Vencidas</h4>
+  {% if overdue %}
+    <ul class="list-group mb-3">
+      {% for s in overdue %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ s.vocabulary.word }}</strong> — {{ s.vocabulary.translation }}
+            <div class="small text-muted">Agendada para: {{ s.scheduled_at|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div>
+            <a class="btn btn-sm btn-primary" href="{% url 'vocab:detail' s.vocabulary.pk %}">Revisar</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">Nenhuma revisão vencida.</p>
+  {% endif %}
+
+  <h4>Hoje</h4>
+  {% if upcoming_today %}
+    <ul class="list-group mb-3">
+      {% for s in upcoming_today %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ s.vocabulary.word }}</strong> — {{ s.vocabulary.translation }}
+            <div class="small text-muted">Agendada para: {{ s.scheduled_at|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div>
+            <a class="btn btn-sm btn-primary" href="{% url 'vocab:detail' s.vocabulary.pk %}">Revisar</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">Nenhuma revisão para hoje.</p>
+  {% endif %}
+
+  <h4>Próxima Semana</h4>
+  {% if upcoming_week %}
+    <ul class="list-group mb-3">
+      {% for s in upcoming_week %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ s.vocabulary.word }}</strong> — {{ s.vocabulary.translation }}
+            <div class="small text-muted">Agendada para: {{ s.scheduled_at|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div>
+            <a class="btn btn-sm btn-primary" href="{% url 'vocab:detail' s.vocabulary.pk %}">Revisar</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">Nenhuma revisão na próxima semana.</p>
+  {% endif %}
+
+  <h4>Depois</h4>
+  {% if upcoming_later %}
+    <ul class="list-group mb-3">
+      {% for s in upcoming_later %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ s.vocabulary.word }}</strong> — {{ s.vocabulary.translation }}
+            <div class="small text-muted">Agendada para: {{ s.scheduled_at|date:"d/m/Y H:i" }}</div>
+          </div>
+          <div>
+            <a class="btn btn-sm btn-primary" href="{% url 'vocab:detail' s.vocabulary.pk %}">Revisar</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">Nenhuma revisão agendada para depois.</p>
+  {% endif %}
+
+  <a class="btn btn-secondary mt-3" href="{% url 'reviews:index' %}">Voltar</a>
+{% endblock %}
