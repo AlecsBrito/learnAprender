@@ -1,19 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Exercícios</h2>
-  
-  <div class="btn-group mb-3" role="group">
-      <div class="mb-3">
-        <a class="btn btn-success" href="{% url 'exercises:create' %}">+ Novo Exercício</a>
-      </div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-3">
+      <h2 class="mb-0">Exercícios</h2>
+      <a class="btn btn-success" href="{% url 'exercises:create' %}">+ Novo Exercício</a>
+    </div>
 
-      <div class="btn-group mb-3" role="group">
-    <a class="btn {% if done_filter == '' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
-       href="{% url 'exercises:list' %}?done=">Todos</a>
-    <a class="btn {% if done_filter == 'done' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
-       href="{% url 'exercises:list' %}?done=done">Realizados</a>
-    <a class="btn {% if done_filter == 'undone' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
-       href="{% url 'exercises:list' %}?done=undone">Pendentes</a>
+    <div>
+      <div class="btn-group" role="group" aria-label="Filtros">
+        <a class="btn {% if done_filter == '' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'exercises:list' %}?done=">Todos</a>
+        <a class="btn {% if done_filter == 'done' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'exercises:list' %}?done=done">Realizados</a>
+        <a class="btn {% if done_filter == 'undone' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'exercises:list' %}?done=undone">Pendentes</a>
+      </div>
+    </div>
   </div>
 
   <form method="get" class="row g-2 mb-3">

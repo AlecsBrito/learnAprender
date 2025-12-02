@@ -147,7 +147,7 @@
                                 <div>
                                     <h6 class="mb-1">
                                         <a href="{% url 'exercises:detail' attempt.exercise.id %}">
-                                            {{ attempt.exercise.content|truncatewords:5 }}
+                                            {{ attempt.exercise.question|truncatewords:5 }}
                                         </a>
                                     </h6>
                                     <small class="text-muted">
@@ -211,7 +211,7 @@
         <a href="{% url 'exercises:list' %}" class="btn btn-primary">
             <i class="fas fa-book"></i> Voltar aos Exercícios
         </a>
-        <a href="{% url 'quizzes:list' %}" class="btn btn-secondary">
+        <a href="{% url 'quizzes:index' %}" class="btn btn-secondary">
             <i class="fas fa-pencil-alt"></i> Fazer Quiz
         </a>
     </div>

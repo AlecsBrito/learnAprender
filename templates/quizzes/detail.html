@@ -18,13 +18,16 @@
   
   <p><strong>Perguntas:</strong> {{ quiz.questions.count }}</p>
   
-  <div class="mb-3">
-    <a class="btn btn-primary" href="{% url 'quizzes:take' quiz.pk %}">Fazer Quiz</a>
-    {% if can_edit %}
-      <a class="btn btn-warning" href="{% url 'quizzes:edit' quiz.pk %}">Editar</a>
-      <a class="btn btn-danger" href="{% url 'quizzes:delete' quiz.pk %}">Remover</a>
-    {% else %}
-      <p class="text-muted"><em>Você não pode editar quiz compartilhado criado por outros usuários.</em></p>
+  <div class="mb-4">
+    <div class="btn-group" role="group">
+      <a class="btn btn-primary" href="{% url 'quizzes:take' quiz.id %}">Fazer Quiz</a>
+      {% if can_edit %}
+        <a class="btn btn-warning" href="{% url 'quizzes:edit' quiz.id %}">Editar</a>
+        <a class="btn btn-danger" href="{% url 'quizzes:delete' quiz.id %}">Remover</a>
+      {% endif %}
+    </div>
+    {% if not can_edit %}
+      <p class="text-muted mt-2"><em>Você não pode editar quiz compartilhado criado por outros usuários.</em></p>
     {% endif %}
   </div>
   

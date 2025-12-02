@@ -1,20 +1,35 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Resultado do Quiz</h2>
-  <p><strong>Quiz:</strong> {{ result.quiz.title }}</p>
-  <p><strong>Usuário:</strong> {{ result.user.username }}</p>
-  <p><strong>Pontuação:</strong> {{ result.score }}%</p>
-  <hr>
-  <h4>Detalhes</h4>
-  <ul class="list-group">
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="card-title">{{ result.quiz.title }}</h2>
+      <dl class="row">
+        <dt class="col-sm-3">Usuário:</dt>
+        <dd class="col-sm-9">{{ result.user.username }}</dd>
+        <dt class="col-sm-3">Pontuação:</dt>
+        <dd class="col-sm-9"><strong class="{% if result.score >= 70 %}text-success{% else %}text-warning{% endif %}">{{ result.score|floatformat:1 }}%</strong></dd>
+        <dt class="col-sm-3">Respondidas em:</dt>
+        <dd class="col-sm-9">{{ result.taken_at|date:"d/m/Y H:i" }}</dd>
+      </dl>
+    </div>
+  </div>
+  
+  <h4>Detalhes das Respostas</h4>
+  <div class="list-group">
     {% for qid, info in result.details.items %}
-      <li class="list-group-item">
-        <strong>Questão {{ qid }}:</strong>
-        <div>Resposta dada: {{ info.given }}</div>
-        <div>Esperado: {{ info.expected }}</div>
-        <div>Correto: {{ info.correct }}</div>
-      </li>
+      <div class="list-group-item">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="flex-grow-1">
+            <h6 class="mb-1">Questão {{ forloop.counter }}</h6>
+            <p class="mb-1"><small>Resposta dada: <code>{{ info.given }}</code></small></p>
+            <p class="mb-1"><small>Esperado: <code>{{ info.expected }}</code></small></p>
+          </div>
+          <span class="badge {% if info.correct %}bg-success{% else %}bg-danger{% endif %}">
+            {% if info.correct %}✓ Correto{% else %}✗ Errado{% endif %}
+          </span>
+        </div>
+      </div>
     {% endfor %}
-  </ul>
-  <a class="btn btn-secondary mt-3" href="{% url 'quizzes:index' %}">Voltar aos quizzes</a>
+  </div>
+  <a class="btn btn-secondary mt-4" href="{% url 'quizzes:index' %}">Voltar aos quizzes</a>
 {% endblock %}
