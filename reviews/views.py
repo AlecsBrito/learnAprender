@@ -79,102 +79,104 @@ def progress(request):
         'type_stats': type_stats,
         'recent_attempts': recent_attempts,
         'recent_quizzes': recent_quizzes,
-
     }
-    @login_required
-    def high_error_words(request):
-        """Show vocabulary with highest error rates for the user."""
-        user = request.user
-    
-        # Get all vocabularies the user has seen (via exercises)
-        # Calculate error rate for each
-        from django.db.models import F, Case, When, FloatField, Count as DbCount
-    
-        all_vocabs = Vocabulary.objects.filter(
-            Q(created_by=user) | Q(is_shared=True)
-        ).annotate(
-            attempt_count=DbCount('performancerecord', filter=Q(performancerecord__user=user))
-        ).filter(attempt_count__gt=0)
-    
-        high_error_words_list = []
-        for vocab in all_vocabs:
-            attempts = PerformanceRecord.objects.filter(user=user, exercise__question__icontains=vocab.word)
-            if attempts.count() >= 2:  # Only show if attempted at least twice
-                correct = attempts.filter(correct=True).count()
-                total = attempts.count()
-                error_rate = ((total - correct) / total * 100) if total > 0 else 0
-                if error_rate >= 30:  # Show words with 30%+ error rate
-                    high_error_words_list.append({
-                        'vocab': vocab,
-                        'attempts': total,
-                        'errors': total - correct,
-                        'error_rate': error_rate
-                    })
-    
-        # Sort by error rate descending
-        high_error_words_list.sort(key=lambda x: x['error_rate'], reverse=True)
-    
-        context = {
-            'high_error_words': high_error_words_list[:20]  # Top 20 problematic words
-        }
-        return render(request, 'reviews/high_error_words.html', context)
-
-    
-    @login_required
-    def schedule_review(request, vocab_id):
-        """Schedule a vocabulary review for later."""
-        vocab = Vocabulary.objects.get(pk=vocab_id)
-        user = request.user
-    
-        if request.method == 'POST':
-            days_offset = int(request.POST.get('days_offset', 1))
-            scheduled_time = timezone.now() + timedelta(days=days_offset)
-        
-            # Create or update review schedule
-            schedule, created = ReviewSchedule.objects.get_or_create(
-                user=user,
-                vocabulary=vocab,
-                defaults={'scheduled_at': scheduled_time}
-            )
-            if not created:
-                schedule.scheduled_at = scheduled_time
-                schedule.save()
-        
-            return render(request, 'reviews/schedule_success.html', {
-                'vocab': vocab,
-                'scheduled_at': scheduled_time
-            })
-    
-        return render(request, 'reviews/schedule_review.html', {'vocab': vocab})
-
     return render(request, 'reviews/progress.html', context)
-    @login_required
-    def scheduled_reviews(request):
-        """Show user's scheduled reviews."""
-        user = request.user
-        today = timezone.now()
+
+
+@login_required
+def high_error_words(request):
+    """Show vocabulary with highest error rates for the user."""
+    user = request.user
+
+    # Get all vocabularies the user has seen (via exercises)
+    # Calculate error rate for each
+    from django.db.models import F, Case, When, FloatField, Count as DbCount
+
+    all_vocabs = Vocabulary.objects.filter(
+        Q(created_by=user) | Q(is_shared=True)
+    ).annotate(
+        attempt_count=DbCount('performancerecord', filter=Q(performancerecord__user=user))
+    ).filter(attempt_count__gt=0)
+
+    high_error_words_list = []
+    for vocab in all_vocabs:
+        attempts = PerformanceRecord.objects.filter(user=user, exercise__question__icontains=vocab.word)
+        if attempts.count() >= 2:  # Only show if attempted at least twice
+            correct = attempts.filter(correct=True).count()
+            total = attempts.count()
+            error_rate = ((total - correct) / total * 100) if total > 0 else 0
+            if error_rate >= 30:  # Show words with 30%+ error rate
+                high_error_words_list.append({
+                    'vocab': vocab,
+                    'attempts': total,
+                    'errors': total - correct,
+                    'error_rate': error_rate
+                })
+
+    # Sort by error rate descending
+    high_error_words_list.sort(key=lambda x: x['error_rate'], reverse=True)
+
+    context = {
+        'high_error_words': high_error_words_list[:20]  # Top 20 problematic words
+    }
+    return render(request, 'reviews/high_error_words.html', context)
+
+
+@login_required
+def schedule_review(request, vocab_id):
+    """Schedule a vocabulary review for later."""
+    vocab = Vocabulary.objects.get(pk=vocab_id)
+    user = request.user
+
+    if request.method == 'POST':
+        days_offset = int(request.POST.get('days_offset', 1))
+        scheduled_time = timezone.now() + timedelta(days=days_offset)
     
-        # Get upcoming and overdue reviews
-        all_scheduled = ReviewSchedule.objects.filter(user=user).select_related('vocabulary')
+        # Create or update review schedule
+        schedule, created = ReviewSchedule.objects.get_or_create(
+            user=user,
+            vocabulary=vocab,
+            defaults={'scheduled_at': scheduled_time}
+        )
+        if not created:
+            schedule.scheduled_at = scheduled_time
+            schedule.save()
     
-        overdue = all_scheduled.filter(scheduled_at__lt=today).order_by('scheduled_at')
-        upcoming_today = all_scheduled.filter(
-            scheduled_at__gte=today,
-            scheduled_at__lt=today + timedelta(days=1)
-        ).order_by('scheduled_at')
-        upcoming_week = all_scheduled.filter(
-            scheduled_at__gte=today + timedelta(days=1),
-            scheduled_at__lt=today + timedelta(days=7)
-        ).order_by('scheduled_at')
-        upcoming_later = all_scheduled.filter(
-            scheduled_at__gte=today + timedelta(days=7)
-        ).order_by('scheduled_at')
-    
-        context = {
-            'overdue': overdue,
-            'upcoming_today': upcoming_today,
-            'upcoming_week': upcoming_week,
-            'upcoming_later': upcoming_later,
-            'total_scheduled': all_scheduled.count()
-        }
-        return render(request, 'reviews/scheduled_reviews.html', context)
+        return render(request, 'reviews/schedule_success.html', {
+            'vocab': vocab,
+            'scheduled_at': scheduled_time
+        })
+
+    return render(request, 'reviews/schedule_review.html', {'vocab': vocab})
+
+
+@login_required
+def scheduled_reviews(request):
+    """Show user's scheduled reviews."""
+    user = request.user
+    today = timezone.now()
+
+    # Get upcoming and overdue reviews
+    all_scheduled = ReviewSchedule.objects.filter(user=user).select_related('vocabulary')
+
+    overdue = all_scheduled.filter(scheduled_at__lt=today).order_by('scheduled_at')
+    upcoming_today = all_scheduled.filter(
+        scheduled_at__gte=today,
+        scheduled_at__lt=today + timedelta(days=1)
+    ).order_by('scheduled_at')
+    upcoming_week = all_scheduled.filter(
+        scheduled_at__gte=today + timedelta(days=1),
+        scheduled_at__lt=today + timedelta(days=7)
+    ).order_by('scheduled_at')
+    upcoming_later = all_scheduled.filter(
+        scheduled_at__gte=today + timedelta(days=7)
+    ).order_by('scheduled_at')
+
+    context = {
+        'overdue': overdue,
+        'upcoming_today': upcoming_today,
+        'upcoming_week': upcoming_week,
+        'upcoming_later': upcoming_later,
+        'total_scheduled': all_scheduled.count()
+    }
+    return render(request, 'reviews/scheduled_reviews.html', context)

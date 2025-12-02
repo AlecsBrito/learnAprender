@@ -2,8 +2,6 @@ from typing import List, Optional
 from .models import Vocabulary
 from exercises.models import Exercise
 import random
-import requests
-from requests import RequestException
 import os
 
 
@@ -14,6 +12,12 @@ def translate_text(text: str, target: str = 'en') -> Optional[str]:
     and `LIBRETRANSLATE_API_KEY`, it will use them; otherwise uses the public endpoint.
     Returns translated text or None on failure.
     """
+    try:
+        import requests
+        from requests import RequestException
+    except ImportError:
+        return None
+    
     url = os.getenv('LIBRETRANSLATE_URL', 'https://libretranslate.de/translate')
     api_key = os.getenv('LIBRETRANSLATE_API_KEY')
     payload = {
