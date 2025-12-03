@@ -2,13 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView
 from .models import Exercise, PerformanceRecord
 from .forms import ExerciseForm
+from .utils import check_answer_correctness  # Função compartilhada
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
-try:
-    from rapidfuzz import fuzz
-except Exception:
-    fuzz = None
 
 
 def can_edit_exercise(user, exercise):
@@ -116,24 +113,10 @@ def take_exercise(request, pk):
     context = {'exercise': ex}
     if request.method == 'POST':
         user_answer = request.POST.get('answer', '').strip()
-        correct = False
-        # normalize comparisons
-        def norm(s):
-            return (s or '').strip()
-
-        if ex.exercise_type == 'mcq':
-            selected = request.POST.get('choice')
-            correct = (selected is not None and norm(selected).lower() == norm(ex.answer).lower())
-        else:
-            # For gap and translate, use fuzzy matching if available
-            given = norm(user_answer)
-            expected = norm(ex.answer)
-            if fuzz:
-                score = fuzz.token_sort_ratio(given, expected)
-                correct = score >= 80
-            else:
-                # fallback to simple substring or exact match
-                correct = given.lower() == expected.lower() or expected.lower() in given.lower()
+        choice = request.POST.get('choice')
+        
+        # Usar função compartilhada para avaliação
+        correct = check_answer_correctness(user_answer, ex.answer, ex.exercise_type, choice)
 
         PerformanceRecord.objects.create(user=request.user, exercise=ex, correct=correct)
 

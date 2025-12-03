@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Exercise
 from .forms import ExerciseForm
+from .admin_utils import get_paginated_queryset, filter_by_search_and_level, filter_by_category, filter_by_sharing  # Funções compartilhadas
 
 
 @staff_member_required
@@ -14,27 +15,15 @@ def exercise_list_admin(request):
     category = request.GET.get('category')
     shared_filter = request.GET.get('shared')
     
-    if q:
-        qs = qs.filter(question__icontains=q) | qs.filter(answer__icontains=q)
+    # Usar funções compartilhadas para filtros
+    qs = filter_by_search_and_level(qs, q, level, ['question', 'answer'])
     if etype:
         qs = qs.filter(exercise_type=etype)
-    if level:
-        qs = qs.filter(level__icontains=level)
-    if category:
-        qs = qs.filter(category__icontains=category)
-    if shared_filter == 'shared':
-        qs = qs.filter(is_shared=True)
-    elif shared_filter == 'personal':
-        qs = qs.filter(is_shared=False)
+    qs = filter_by_category(qs, category)
+    qs = filter_by_sharing(qs, shared_filter)
 
-    # Pagination
-    from django.core.paginator import Paginator
-    paginator = Paginator(qs, 25)
-    page_num = request.GET.get('page', 1)
-    try:
-        page_obj = paginator.page(page_num)
-    except:
-        page_obj = paginator.page(1)
+    # Pagination usando função compartilhada
+    page_obj = get_paginated_queryset(qs, request.GET.get('page', 1), per_page=25)
 
     # Bulk delete
     action = request.POST.get('action')

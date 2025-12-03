@@ -6,14 +6,11 @@ from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from datetime import timedelta
 from exercises.models import Exercise
+from exercises.utils import check_answer_correctness, get_procedural_exercises_queryset  # Funções compartilhadas
 from .models import Quiz, QuizResult
 from .forms import QuizForm
 from django.contrib.auth.models import User
 import random
-try:
-    from rapidfuzz import fuzz
-except Exception:
-    fuzz = None
 
 
 def can_edit_quiz(user, quiz):
@@ -85,11 +82,12 @@ def preview_quiz_count(request):
     level = request.GET.get('level')
     themes = request.GET.getlist('themes') or request.GET.getlist('theme') or []
 
-    # Only include procedural exercises (gap-fill and translation, exclude MCQ)
+    # Usar função compartilhada para filtrar apenas exercícios procedurais
     qs = Exercise.objects.filter(
-        Q(created_by=request.user) | Q(is_shared=True) | Q(created_by__isnull=True),
-        exercise_type__in=['gap', 'translate']
+        Q(created_by=request.user) | Q(is_shared=True) | Q(created_by__isnull=True)
     )
+    qs = get_procedural_exercises_queryset(qs)
+    
     if level:
         qs = qs.filter(level__icontains=level)
     if themes:
@@ -118,12 +116,11 @@ def generate_quiz(request):
         count = int(request.POST.get('count') or 10)
         is_shared = request.POST.get('is_shared') == 'on'
 
-        # Filter exercises visible to this user (include global exercises with no creator)
-        # Only include procedural exercises (gap-fill and translation, exclude MCQ)
+        # Usar função compartilhada para filtrar apenas exercícios procedurais
         qs = Exercise.objects.filter(
-            Q(created_by=request.user) | Q(is_shared=True) | Q(created_by__isnull=True),
-            exercise_type__in=['gap', 'translate']
+            Q(created_by=request.user) | Q(is_shared=True) | Q(created_by__isnull=True)
         )
+        qs = get_procedural_exercises_queryset(qs)
         if level:
             qs = qs.filter(level__icontains=level)
         if themes:
@@ -228,27 +225,23 @@ def take_quiz(request, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
     questions = list(quiz.questions.all())
     if request.method == 'POST':
+        from exercises.models import PerformanceRecord
+        
         results = {}
         correct_count = 0
         for q in questions:
             field = f'q_{q.id}'
             ans = request.POST.get(field, '').strip()
-            is_correct = False
-            if q.exercise_type == 'mcq':
-                is_correct = ans and ans.strip().lower() == q.answer.strip().lower()
-            else:
-                given = ans.strip()
-                expected = q.answer.strip()
-                if fuzz:
-                    score = fuzz.token_sort_ratio(given, expected)
-                    is_correct = score >= 80
-                else:
-                    is_correct = expected.lower() in given.lower() or given.lower() in expected.lower()
+            choice = request.POST.get(f'choice_{q.id}')
+            
+            # Usar função compartilhada para avaliação
+            is_correct = check_answer_correctness(ans, q.answer, q.exercise_type, choice)
+            
             results[str(q.id)] = {'given': ans, 'correct': is_correct, 'expected': q.answer}
             if is_correct:
                 correct_count += 1
-            # record performance per question
-            from exercises.models import PerformanceRecord
+            
+            # Registrar performance para cada questão
             PerformanceRecord.objects.create(user=request.user, exercise=q, correct=is_correct)
 
         score = (correct_count / max(1, len(questions))) * 100.0

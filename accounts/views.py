@@ -33,6 +33,11 @@ def register(request):
 
 @login_required
 def profile(request):
+    # Ensure user has a profile
+    if not hasattr(request.user, 'profile'):
+        from .models import Profile
+        Profile.objects.get_or_create(user=request.user)
+    
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, instance=request.user.profile)
         if form.is_valid():

@@ -113,3 +113,144 @@ def get_suggestions_for_gap_fill(vocab: Vocabulary, num_suggestions: int = 4) ->
         'correct': correct_word,
         'options': options,
     }
+
+
+# ============================================================================
+# AVALIAÇÃO COMPARTILHADA - Funções reutilizáveis entre views
+# ============================================================================
+
+try:
+    from rapidfuzz import fuzz
+except Exception:
+    fuzz = None
+
+
+def normalize_answer(text):
+    """Normaliza texto para comparação de respostas.
+    
+    Args:
+        text (str): Texto a normalizar
+    
+    Returns:
+        str: Texto normalizado (lowercase, sem espaços extras)
+    """
+    return text.strip().lower()
+
+
+def check_answer_correctness(user_answer, expected_answer, exercise_type, choice=None):
+    """
+    Verifica se a resposta do usuário está correta.
+    
+    Esta função é compartilhada entre take_exercise e take_quiz para
+    garantir consistência na avaliação.
+    
+    Args:
+        user_answer (str): Resposta fornecida pelo usuário
+        expected_answer (str): Resposta esperada
+        exercise_type (str): Tipo de exercício ('mcq', 'gap', 'translate')
+        choice (str): Opção selecionada para MCQ (opcional)
+    
+    Returns:
+        bool: True se correto, False caso contrário
+    """
+    if exercise_type == 'mcq':
+        return choice is not None and normalize_answer(choice) == normalize_answer(expected_answer)
+    
+    # Para gap e translate: fuzzy matching com 80% threshold
+    given = normalize_answer(user_answer)
+    expected = normalize_answer(expected_answer)
+    
+    if fuzz:
+        score = fuzz.token_sort_ratio(given, expected)
+        return score >= 80
+    else:
+        # Fallback: substring match se rapidfuzz não disponível
+        return given == expected or expected in given
+
+
+def get_procedural_exercises_queryset(base_qs):
+    """
+    Filtra queryset para apenas exercícios procedurais.
+    
+    Exercícios procedurais (gap-fill e translation) têm maior valor de
+    aprendizado comparado a MCQ. Esta função é compartilhada entre
+    multiple choice generation para garantir consistência.
+    
+    Args:
+        base_qs (QuerySet): QuerySet base de exercícios
+    
+    Returns:
+        QuerySet: QuerySet filtrado com apenas gap-fill e translation
+    """
+    return base_qs.filter(exercise_type__in=['gap', 'translate'])
+
+
+def exercise_already_exists(question, exercise_type, user=None):
+    """
+    Verifica se um exercício com essa pergunta já existe.
+    
+    Usa normalização para detectar duplicatas mesmo com pequenas
+    diferenças de espaçamento ou case.
+    
+    Args:
+        question (str): Pergunta/texto do exercício
+        exercise_type (str): Tipo de exercício (mcq/gap/translate)
+        user (User): Usuário proprietário (opcional - se None, busca globalmente)
+    
+    Returns:
+        bool: True se exercício duplicado já existe
+    """
+    from .models import Exercise
+    from django.db.models import Q
+    
+    # Normalizar pergunta para comparação
+    normalized_question = normalize_answer(question).strip()
+    
+    qs = Exercise.objects.filter(exercise_type=exercise_type)
+    
+    # Se usuário fornecido, filtrar por seu exercício
+    if user:
+        qs = qs.filter(created_by=user)
+    
+    # Buscar por pergunta similar (comparação normalizada)
+    for ex in qs:
+        if normalize_answer(ex.question).strip() == normalized_question:
+            return True
+    
+    return False
+
+
+def deduplicate_exercises(exercises, user=None):
+    """
+    Remove exercícios duplicados de uma lista.
+    
+    Detecta duplicatas por pergunta normalizada (case-insensitive, espaços).
+    Mantém o primeiro, remove os posteriores.
+    
+    Args:
+        exercises (list): Lista de Exercise objects (não salvos)
+        user (User): Usuário proprietário (opcional)
+    
+    Returns:
+        list: Lista de exercícios sem duplicatas internas e externas
+    """
+    from .models import Exercise
+    
+    seen_questions = set()
+    deduplicated = []
+    
+    for ex in exercises:
+        normalized_q = normalize_answer(ex.question).strip()
+        
+        # Skip se já visto nesta lista
+        if normalized_q in seen_questions:
+            continue
+        
+        # Skip se já existe no BD (para este usuário)
+        if exercise_already_exists(ex.question, ex.exercise_type, user):
+            continue
+        
+        seen_questions.add(normalized_q)
+        deduplicated.append(ex)
+    
+    return deduplicated
