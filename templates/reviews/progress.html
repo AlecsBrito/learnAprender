@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>📊 Meu Progresso</h2>
+  <p>Acompanhe suas estatísticas de aprendizado e desempenho geral.</p>
+
+  <!-- Overall Stats -->
+  <div class="row mt-4 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">Total de Tentativas</h6>
+          <p class="display-6 text-primary">{{ total_attempts }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">Acertos</h6>
+          <p class="display-6 text-success">{{ correct_attempts }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">Erros</h6>
+          <p class="display-6 text-danger">{{ incorrect_attempts }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h6 class="card-title">Taxa de Acerto</h6>
+          <p class="display-6 text-info">{{ accuracy|floatformat:1 }}%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Stats -->
+  {% if total_quizzes > 0 %}
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title">Quizzes Realizados</h6>
+            <p class="display-6 text-primary">{{ total_quizzes }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title">Pontuação Média em Quizzes</h6>
+            <p class="display-6 text-success">{{ avg_quiz_score|floatformat:1 }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Performance by Category -->
+  {% if category_stats %}
+    <h4 class="mt-4 mb-3">Desempenho por Categoria</h4>
+    <div class="table-responsive mb-4">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Categoria</th>
+            <th>Tentativas</th>
+            <th>Acertos</th>
+            <th>Taxa de Acerto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stat in category_stats %}
+            <tr>
+              <td><strong>{{ stat.category }}</strong></td>
+              <td>{{ stat.attempts }}</td>
+              <td>{{ stat.correct }}</td>
+              <td>
+                <div class="progress" style="min-width: 100px">
+                  <div class="progress-bar {% if stat.accuracy >= 70 %}bg-success{% elif stat.accuracy >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                       role="progressbar" 
+                       aria-valuenow="{{ stat.accuracy }}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100" 
+                       style="width: {{ stat.accuracy }}%">
+                    {{ stat.accuracy|floatformat:0 }}%
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <!-- Performance by Exercise Type -->
+  {% if type_stats %}
+    <h4 class="mt-4 mb-3">Desempenho por Tipo de Exercício</h4>
+    <div class="table-responsive mb-4">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Tipo de Exercício</th>
+            <th>Tentativas</th>
+            <th>Acertos</th>
+            <th>Taxa de Acerto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for stat in type_stats %}
+            <tr>
+              <td><strong>{{ stat.type }}</strong></td>
+              <td>{{ stat.attempts }}</td>
+              <td>{{ stat.correct }}</td>
+              <td>
+                <div class="progress" style="min-width: 100px">
+                  <div class="progress-bar {% if stat.accuracy >= 70 %}bg-success{% elif stat.accuracy >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                       role="progressbar" 
+                       aria-valuenow="{{ stat.accuracy }}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100" 
+                       style="width: {{ stat.accuracy }}%">
+                    {{ stat.accuracy|floatformat:0 }}%
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <!-- Recent Activity -->
+  {% if recent_attempts or recent_quizzes %}
+    <h4 class="mt-4 mb-3">Atividade Recente</h4>
+    
+    {% if recent_attempts %}
+      <h5 class="mb-2">Últimas Tentativas em Exercícios</h5>
+      <div class="list-group mb-4">
+        {% for attempt in recent_attempts %}
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-1">{{ attempt.exercise.question|truncatewords:15 }}</h6>
+              <small class="text-muted">{{ attempt.timestamp|date:"d/m/Y H:i" }}</small>
+            </div>
+            <span class="badge {% if attempt.correct %}bg-success{% else %}bg-danger{% endif %}">
+              {% if attempt.correct %}✓ Correto{% else %}✗ Errado{% endif %}
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if recent_quizzes %}
+      <h5 class="mb-2">Últimos Quizzes</h5>
+      <div class="list-group mb-4">
+        {% for quiz in recent_quizzes %}
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-1">{{ quiz.quiz.title }}</h6>
+              <small class="text-muted">{{ quiz.taken_at|date:"d/m/Y H:i" }}</small>
+            </div>
+            <span class="badge bg-info">{{ quiz.score|floatformat:0 }}%</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="alert alert-info mt-4">
+      <p>Você ainda não tem atividade registrada. Comece a fazer exercícios e quizzes!</p>
+    </div>
+  {% endif %}
+
+  <a class="btn btn-secondary mt-3" href="{% url 'reviews:index' %}">Voltar</a>
+{% endblock %}

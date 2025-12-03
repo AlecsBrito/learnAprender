@@ -162,6 +162,47 @@ def generate_exercises_for_vocab(vocab: Vocabulary, distractor_pool: List[Vocabu
                 category=vocab.category,
             )
             exercises.append(ex_gap)
+        else:
+            # Example doesn't contain the word, create generic gap-fill
+            gap_question = f'Fill in the blank: "_____ means {vocab.translation.lower()}."'
+            ex_gap = Exercise(
+                question=gap_question,
+                exercise_type='gap',
+                answer=vocab.word,
+                level=vocab.level,
+                category=vocab.category,
+            )
+            exercises.append(ex_gap)
+    else:
+        # No example: create gap-fill using definition if available, else generic
+        try:
+            if def_text:
+                # def_text already includes " — " prefix
+                definition = def_text.strip().lstrip('—').strip()
+                gap_question = f'Fill in the blank: "A _____ is {definition.lower()}."'
+            else:
+                # Fallback to simple format with translation
+                gap_question = f'Fill in the blank: "_____ means {vocab.translation.lower()}."'
+            
+            ex_gap = Exercise(
+                question=gap_question,
+                exercise_type='gap',
+                answer=vocab.word,
+                level=vocab.level,
+                category=vocab.category,
+            )
+            exercises.append(ex_gap)
+        except Exception:
+            # Last resort: create simplest gap-fill
+            gap_question = f'Fill in the blank: "_____ means {vocab.translation.lower()}."'
+            ex_gap = Exercise(
+                question=gap_question,
+                exercise_type='gap',
+                answer=vocab.word,
+                level=vocab.level,
+                category=vocab.category,
+            )
+            exercises.append(ex_gap)
 
     return exercises
 
@@ -247,6 +288,7 @@ def generate_exercises_from_random_words(count: int = 10, user_category: str = '
     Each word generates:
     - One translation exercise
     - One MCQ exercise (if translation found)
+    - One gap-fill exercise (if suitable example found)
     
     Returns list of unsaved Exercise objects.
     """
@@ -304,6 +346,33 @@ def generate_exercises_from_random_words(count: int = 10, user_category: str = '
                     exercises.append(ex_mcq)
             except Exception:
                 # If MCQ generation fails, just skip it and continue
+                pass
+            
+            # Try to create gap-fill exercise with example from definition
+            try:
+                # Create a simple sentence using the word if definition available
+                if definition:
+                    # Simple templates for gap-fill sentences
+                    templates = [
+                        f"The word \"{word}\" means {translation}.",
+                        f"In English, we use \"{word}\" to describe something {definition.lower()}.",
+                        f"A {{}} is something {definition.lower()}.",
+                    ]
+                    
+                    # Use first template with word inserted
+                    gap_sentence = f'Fill in the blank: "A {{}} is {definition.lower()}."'
+                    gap_question = gap_sentence.replace('{}', '_____')
+                    
+                    ex_gap = Exercise(
+                        question=gap_question,
+                        exercise_type='gap',
+                        answer=word,
+                        level='beginner',
+                        category=user_category or 'Random',
+                    )
+                    exercises.append(ex_gap)
+            except Exception:
+                # If gap-fill generation fails, just skip it and continue
                 pass
         
         except Exception:

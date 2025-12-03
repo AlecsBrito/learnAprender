@@ -1,12 +1,38 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Resultado</h2>
-  {% if correct %}
-    <div class="alert alert-success">Correto! ✔</div>
-  {% else %}
-    <div class="alert alert-danger">Incorreto. ✖</div>
-    <p><strong>Resposta esperada:</strong> {{ exercise.answer }}</p>
-    <p><strong>Sua resposta:</strong> {{ user_answer }}</p>
-  {% endif %}
-  <a class="btn btn-secondary" href="{% url 'exercises:list' %}">Voltar aos exercícios</a>
+  <div class="card">
+    <div class="card-body">
+      <h2 class="card-title mb-4">Resultado</h2>
+      
+      {% if correct %}
+        <div class="alert alert-success alert-lg">
+          <h5 class="alert-heading">✓ Correto!</h5>
+          <p class="mb-0">Excelente! Você acertou a resposta.</p>
+        </div>
+      {% else %}
+        <div class="alert alert-danger alert-lg">
+          <h5 class="alert-heading">✗ Incorreto</h5>
+          <p class="mb-0">Tente novamente ou veja a resposta correta abaixo.</p>
+        </div>
+        
+        <div class="card mt-3 mb-3">
+          <div class="card-body">
+            <p class="mb-2">
+              <strong>Resposta esperada:</strong>
+              <span class="badge bg-success">{{ exercise.answer }}</span>
+            </p>
+            <p class="mb-0">
+              <strong>Sua resposta:</strong>
+              <span class="badge bg-danger">{{ user_answer }}</span>
+            </p>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="d-flex gap-2">
+        <a class="btn btn-primary" href="{% url 'exercises:take' exercise.pk %}">Tentar Novamente</a>
+        <a class="btn btn-secondary" href="{% url 'exercises:list' %}">Voltar aos Exercícios</a>
+      </div>
+    </div>
+  </div>
 {% endblock %}

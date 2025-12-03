@@ -20,14 +20,14 @@
   
   <div class="mb-4">
     <div class="btn-group" role="group">
-      <a class="btn btn-primary" href="{% url 'quizzes:take' quiz.id %}\">Fazer Quiz</a>
+      <a class="btn btn-primary" href="{% url 'quizzes:take' quiz.id %}">Fazer Quiz</a>
       {% if can_edit %}
-        <a class="btn btn-warning" href="{% url 'quizzes:edit' quiz.id %}\">Editar Detalhes</a>
-        <a class="btn btn-danger" href="{% url 'quizzes:delete' quiz.id %}\">Remover Quiz</a>
+        <a class="btn btn-warning" href="{% url 'quizzes:edit' quiz.id %}">Editar Detalhes</a>
+        <a class="btn btn-danger" href="{% url 'quizzes:delete' quiz.id %}">Remover Quiz</a>
       {% endif %}
     </div>
     {% if not can_edit %}
-      <p class="text-muted mt-2\"><em>Você não pode editar quiz compartilhado criado por outros usuários.</em></p>
+      <p class="text-muted mt-2"><em>Você não pode editar quiz compartilhado criado por outros usuários.</em></p>
     {% endif %}
   </div>
   

@@ -47,6 +47,14 @@ class ExerciseListView(ListView):
         qs = Exercise.objects.filter(
             Q(created_by=self.request.user) | Q(is_shared=True)
         )
+        
+        # Filter by sharing type (shared/personal/all)
+        vocab_type = self.request.GET.get('vocab_type')
+        if vocab_type == 'shared':
+            qs = qs.filter(is_shared=True)
+        elif vocab_type == 'personal':
+            qs = qs.filter(created_by=self.request.user, is_shared=False)
+        
         q = self.request.GET.get('q')
         level = self.request.GET.get('level')
         category = self.request.GET.get('category')
@@ -93,6 +101,7 @@ class ExerciseListView(ListView):
         
         context['done_filter'] = self.request.GET.get('done', '')
         context['exercise_type'] = self.request.GET.get('exercise_type', '')
+        context['vocab_type'] = self.request.GET.get('vocab_type', 'all')
         return context
 
 

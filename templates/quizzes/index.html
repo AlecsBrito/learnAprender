@@ -8,7 +8,16 @@
     <a class="btn btn-success" href="{% url 'quizzes:generate' %}">+ Gerar novo Quiz</a>
   </div>
 
+  <div class="mb-3">
+    <div class="btn-group" role="group" aria-label="Filtros de Compartilhamento">
+      <a class="btn {% if vocab_type == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'quizzes:index' %}?vocab_type=all">Todos</a>
+      <a class="btn {% if vocab_type == 'shared' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'quizzes:index' %}?vocab_type=shared">Compartilhados</a>
+      <a class="btn {% if vocab_type == 'personal' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'quizzes:index' %}?vocab_type=personal">Pessoais</a>
+    </div>
+  </div>
+
   <form method="get" class="row g-2 mb-3 align-items-end">
+    <input type="hidden" name="vocab_type" value="{{ vocab_type }}">
     <div class="col-auto">
       <label class="form-label">Tema</label>
       <select name="theme" class="form-select">

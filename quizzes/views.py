@@ -49,6 +49,14 @@ def index(request):
     else:
         qs = Quiz.objects.filter(is_shared=True)
 
+    # Filter by sharing type (shared/personal/all)
+    vocab_type = request.GET.get('vocab_type')
+    if request.user.is_authenticated:
+        if vocab_type == 'shared':
+            qs = qs.filter(is_shared=True)
+        elif vocab_type == 'personal':
+            qs = qs.filter(created_by=request.user, is_shared=False)
+
     # Filtering from query params
     theme = request.GET.get('theme', '').strip()
     level = request.GET.get('level', '').strip()
@@ -67,7 +75,7 @@ def index(request):
     categories = exercise_qs.values_list('category', flat=True).distinct()
     categories = [c for c in categories if c]
 
-    return render(request, 'quizzes/index.html', {'quizzes': quizzes, 'categories': categories})
+    return render(request, 'quizzes/index.html', {'quizzes': quizzes, 'categories': categories, 'vocab_type': vocab_type or 'all'})
 
 
 @login_required

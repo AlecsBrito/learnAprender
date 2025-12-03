@@ -31,7 +31,14 @@
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a class="dropdown-item" href="{% url 'profile' %}">Perfil</a></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="{% url 'logout' %}">Sair</a></li>
+                  <li>
+                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="dropdown-item" style="border: none; background: none; cursor: pointer; width: 100%; text-align: left; padding: 0.5rem 1rem;">
+                        Sair
+                      </button>
+                    </form>
+                  </li>
                 </ul>
               </li>
             {% else %}
