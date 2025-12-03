@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Agendar Revisão{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>📅 Agendar Revisão</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Palavra:</strong> {{ vocab.word }}</p>
+            <p><strong>Tradução:</strong> {{ vocab.translation }}</p>
+            {% if vocab.example %}
+                <p><strong>Exemplo:</strong> <em>{{ vocab.example }}</em></p>
+            {% endif %}
+            <p><strong>Categoria:</strong> <span class="badge bg-info">{{ vocab.category }}</span></p>
+        </div>
+    </div>
+
+    <form method="post" class="row g-3 needs-validation">
+        {% csrf_token %}
+        
+        <div class="col-md-6">
+            <label for="days_offset" class="form-label">Quando você quer revisar essa palavra?</label>
+            <select name="days_offset" id="days_offset" class="form-select" required>
+                <option value="">Escolha uma opção...</option>
+                <option value="1">Amanhã</option>
+                <option value="3">Em 3 dias</option>
+                <option value="7">Em 1 semana</option>
+                <option value="14">Em 2 semanas</option>
+                <option value="30">Em 1 mês</option>
+            </select>
+            <div class="invalid-feedback">
+                Por favor, escolha uma opção.
+            </div>
+        </div>
+
+        <div class="col-12">
+            <button class="btn btn-primary me-2" type="submit">
+                ✓ Agendar Revisão
+            </button>
+            <a class="btn btn-secondary" href="{% url 'reviews:high_error_words' %}">
+                ✕ Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

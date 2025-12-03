@@ -89,23 +89,36 @@ def high_error_words(request):
     """Show vocabulary with highest error rates for the user."""
     user = request.user
     
-    # Get all vocabularies the user has seen (via exercises)
-    all_vocabs = Vocabulary.objects.filter(
-        Q(created_by=user) | Q(is_shared=True)
-    )
+    # Get all exercises attempted by this user grouped by question (word)
+    attempts_by_exercise = PerformanceRecord.objects.filter(user=user).select_related('exercise')
     
+    # Build a dictionary of error rates grouped by exercise question
+    error_stats = {}
+    for attempt in attempts_by_exercise:
+        question = attempt.exercise.question
+        
+        if question not in error_stats:
+            error_stats[question] = {
+                'exercise': attempt.exercise,
+                'total': 0,
+                'errors': 0,
+            }
+        
+        error_stats[question]['total'] += 1
+        if not attempt.correct:
+            error_stats[question]['errors'] += 1
+    
+    # Filter and calculate error rates
     high_error_words_list = []
-    for vocab in all_vocabs:
-        attempts = PerformanceRecord.objects.filter(user=user, exercise__question__icontains=vocab.word)
-        if attempts.count() >= 2:  # Only show if attempted at least twice
-            correct = attempts.filter(correct=True).count()
-            total = attempts.count()
-            error_rate = ((total - correct) / total * 100) if total > 0 else 0
+    for question, stats in error_stats.items():
+        if stats['total'] >= 2:  # Only show if attempted at least twice
+            error_rate = (stats['errors'] / stats['total'] * 100) if stats['total'] > 0 else 0
             if error_rate >= 30:  # Show words with 30%+ error rate
                 high_error_words_list.append({
-                    'vocab': vocab,
-                    'attempts': total,
-                    'errors': total - correct,
+                    'exercise': stats['exercise'],
+                    'question': question,
+                    'attempts': stats['total'],
+                    'errors': stats['errors'],
                     'error_rate': error_rate
                 })
     
@@ -113,7 +126,7 @@ def high_error_words(request):
     high_error_words_list.sort(key=lambda x: x['error_rate'], reverse=True)
     
     context = {
-        'high_error_words': high_error_words_list[:20]  # Top 20 problematic words
+        'high_error_words': high_error_words_list[:20]  # Top 20 problematic questions
     }
     return render(request, 'reviews/high_error_words.html', context)
 

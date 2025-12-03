@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Revisões Agendadas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>📅 Suas Revisões Agendadas</h1>
+
+    <!-- Overdue Reviews -->
+    {% if overdue %}
+    <div class="mt-4">
+        <div class="alert alert-danger" role="alert">
+            <h4>⚠️ Revisões Atrasadas ({{ overdue|length }})</h4>
+            <p>Você tem {{ overdue|length }} revisão(ões) para fazer urgentemente!</p>
+        </div>
+        <div class="list-group mb-4">
+            {% for schedule in overdue %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ schedule.vocabulary.word }}</h5>
+                    <span class="badge bg-danger">Atrasada desde {{ schedule.scheduled_at|date:"d/m/Y" }}</span>
+                </div>
+                <p class="mb-2"><strong>Tradução:</strong> {{ schedule.vocabulary.translation }}</p>
+                <small class="text-muted">{{ schedule.vocabulary.category }}</small>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Today's Reviews -->
+    {% if upcoming_today %}
+    <div class="mt-4">
+        <h5>📌 Revisões para Hoje ({{ upcoming_today|length }})</h5>
+        <div class="list-group mb-4">
+            {% for schedule in upcoming_today %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ schedule.vocabulary.word }}</h6>
+                    <span class="badge bg-warning">Hoje às {{ schedule.scheduled_at|date:"H:i" }}</span>
+                </div>
+                <p class="mb-1">{{ schedule.vocabulary.translation }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- This Week -->
+    {% if upcoming_week %}
+    <div class="mt-4">
+        <h5>📆 Esta Semana ({{ upcoming_week|length }})</h5>
+        <div class="list-group mb-4">
+            {% for schedule in upcoming_week %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ schedule.vocabulary.word }}</h6>
+                    <span class="badge bg-info">{{ schedule.scheduled_at|date:"d/m dH:i" }}</span>
+                </div>
+                <p class="mb-1">{{ schedule.vocabulary.translation }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Later -->
+    {% if upcoming_later %}
+    <div class="mt-4">
+        <h5>⏳ Próximas ({{ upcoming_later|length }})</h5>
+        <div class="list-group mb-4">
+            {% for schedule in upcoming_later %}
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">{{ schedule.vocabulary.word }}</h6>
+                    <span class="badge bg-secondary">{{ schedule.scheduled_at|date:"d/m/Y" }}</span>
+                </div>
+                <p class="mb-1">{{ schedule.vocabulary.translation }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- No Scheduled Reviews -->
+    {% if not overdue and not upcoming_today and not upcoming_week and not upcoming_later %}
+    <div class="alert alert-info mt-4" role="alert">
+        <strong>Nenhuma revisão agendada!</strong> Vá para a seção de palavras problemáticas para agendar revisões.
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'reviews:index' %}" class="btn btn-secondary">← Voltar</a>
+    </div>
+</div>
+{% endblock %}

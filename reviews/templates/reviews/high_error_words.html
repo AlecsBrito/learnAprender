@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Palavras com Mais Erros{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Palavras com Mais Erros</h1>
+    <p class="text-muted">Exercícios que você mais comete erros (taxa ≥ 30%)</p>
+
+    {% if high_error_words %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Pergunta</th>
+                        <th>Tipo de Exercício</th>
+                        <th>Tentativas</th>
+                        <th>Erros</th>
+                        <th>Taxa de Erro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in high_error_words %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.question|truncatewords:15 }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {% if item.exercise.exercise_type == 'mcq' %}
+                                        Múltipla Escolha
+                                    {% elif item.exercise.exercise_type == 'gap' %}
+                                        Preencher Lacuna
+                                    {% elif item.exercise.exercise_type == 'translate' %}
+                                        Tradução
+                                    {% else %}
+                                        {{ item.exercise.exercise_type }}
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>{{ item.attempts }}</td>
+                            <td>{{ item.errors }}</td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    {{ item.error_rate|floatformat:1 }}%
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'exercises:take' item.exercise.id %}" class="btn btn-sm btn-primary">
+                                    Praticar Agora
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <strong>Parabéns!</strong> Você não tem exercícios problemáticos no momento.
+            Resolva mais exercícios para ter dados de análise.
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'reviews:index' %}" class="btn btn-secondary">
+            ← Voltar para Reviews
+        </a>
+    </div>
+</div>
+{% endblock %}

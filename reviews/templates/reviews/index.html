@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Reviews - Análise de Progresso{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>📊 Análise de Progresso</h1>
+    
+    <div class="row mt-4">
+        <!-- Card: Progresso -->
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Progresso</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'reviews:progress' %}" class="btn btn-outline-primary w-100">
+                        Ver Estatísticas Completas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Palavras com Erros -->
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5>Palavras com Mais Erros</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'reviews:high_error_words' %}" class="btn btn-outline-danger w-100">
+                        Ver Palavras Problemáticas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card: Revisões Agendadas -->
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>Revisões Agendadas</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'reviews:scheduled_reviews' %}" class="btn btn-outline-success w-100">
+                        Ver Agenda de Revisão
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Revisão Agendada{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="alert alert-success" role="alert">
+        <h4>✓ Revisão Agendada com Sucesso!</h4>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Palavra:</strong> {{ vocab.word }}</p>
+            <p><strong>Tradução:</strong> {{ vocab.translation }}</p>
+            <p><strong>Próxima revisão:</strong> <span class="badge bg-info">{{ scheduled_at|date:"d/m/Y à\s H:i" }}</span></p>
+        </div>
+    </div>
+
+    <div class="d-grid gap-2 d-sm-flex">
+        <a href="{% url 'reviews:high_error_words' %}" class="btn btn-primary btn-lg">
+            ← Voltar para Palavras com Mais Erros
+        </a>
+        <a href="{% url 'reviews:scheduled_reviews' %}" class="btn btn-secondary btn-lg">
+            📅 Ver Todas as Revisões
+        </a>
+    </div>
+</div>
+{% endblock %}
