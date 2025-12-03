@@ -1,8 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
-  <h2>Vocabulário</h2>
-  <div class="mb-3">
-    <a class="btn btn-success" href="{% url 'vocab:add' %}">Adicionar palavra</a>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Vocabulário</h2>
+    <div class="btn-group" role="group">
+      <a class="btn btn-success" href="{% url 'vocab:add' %}">➕ Adicionar palavra</a>
+      <a class="btn btn-info" href="{% url 'vocab:generate_random_exercises' %}">🎲 Gerar exercícios aleatórios</a>
+    </div>
   </div>
 
   <div class="btn-group mb-3" role="group">

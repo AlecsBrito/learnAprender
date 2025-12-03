@@ -1,8 +1,46 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <div class="jumbotron">
-    <h1>Bem-vindo ao LearnAprender</h1>
-    <p class="lead">Organize vocabulário, faça exercícios e revise com base no seu desempenho.</p>
-  </div>
+  {% if user.is_authenticated %}
+    <div class="row">
+      <div class="col-md-12">
+        <div class="jumbotron bg-light p-5 rounded">
+          <h1 class="display-4">Bem-vindo, {{ user.username }}!</h1>
+          <p class="lead">Organize vocabulário, faça exercícios e revise com base no seu desempenho.</p>
+          <hr class="my-4">
+          <div class="row mt-4">
+            <div class="col-md-3">
+              <a href="/vocab/" class="btn btn-primary btn-lg w-100">📚 Vocabulário</a>
+            </div>
+            <div class="col-md-3">
+              <a href="/exercises/" class="btn btn-info btn-lg w-100">✏️ Exercícios</a>
+            </div>
+            <div class="col-md-3">
+              <a href="/quizzes/" class="btn btn-success btn-lg w-100">📝 Quizzes</a>
+            </div>
+            <div class="col-md-3">
+              <a href="/reviews/" class="btn btn-warning btn-lg w-100">🔄 Revisão</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="row justify-content-center mt-5">
+      <div class="col-md-8">
+        <div class="jumbotron bg-light p-5 rounded text-center">
+          <h1 class="display-4">LearnAprender</h1>
+          <p class="lead">Plataforma de aprendizado de idiomas</p>
+          <hr class="my-4">
+          <p>Organize vocabulário, faça exercícios e revise com base no seu desempenho.</p>
+          <div class="mt-4">
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg me-2">Entrar</a>
+            <a href="{% url 'register' %}" class="btn btn-success btn-lg">Criar Conta</a>
+          </div>
+          <hr class="my-4">
+          <p class="text-muted">Crie uma conta para começar!</p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}

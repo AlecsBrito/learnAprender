@@ -166,3 +166,71 @@ def generate_exercises_from_all(request):
 
     messages.success(request, f'Gerados {total} exercícios a partir do vocabulário.')
     return redirect('vocab:list')
+
+
+@login_required
+def generate_random_exercises(request):
+    """Generate exercises with random vocabulary words from API sources."""
+    import random
+    from .utils import generate_exercises_from_random_words, get_random_words, fetch_word_definition_and_translation
+    
+    if request.method != 'POST':
+        return render(request, 'vocab/confirm_generate_random.html', {'total_words': 'unlimited'})
+    
+    # Get count from POST (default 10, max 30)
+    count = int(request.POST.get('count', 10))
+    count = min(count, 30)  # Limit to 30 to avoid too many API calls
+    
+    try:
+        # Get random words
+        random_words = get_random_words(count)
+        
+        # First, add words to vocabulary
+        vocab_created = []
+        for word in random_words:
+            try:
+                definition, translation = fetch_word_definition_and_translation(word)
+                if translation:
+                    # Check if word already exists in user's vocabulary
+                    existing = Vocabulary.objects.filter(
+                        created_by=request.user,
+                        word__iexact=word
+                    ).first()
+                    
+                    if not existing:
+                        vocab = Vocabulary.objects.create(
+                            word=word,
+                            translation=translation,
+                            example=definition or '',
+                            category='Random Words',
+                            level='beginner',
+                            created_by=request.user,
+                            is_shared=False,
+                        )
+                        vocab_created.append(vocab)
+            except Exception:
+                pass
+        
+        # Then generate exercises from the created vocabularies
+        exercises = generate_exercises_from_random_words(count=count, user_category='Random Words')
+        
+        total = 0
+        with transaction.atomic():
+            for ex in exercises:
+                ex.created_by = request.user
+                ex.save()
+                total += 1
+        
+        vocab_count = len(vocab_created)
+        if total > 0:
+            messages.success(
+                request, 
+                f'✨ Adicionadas {vocab_count} palavra(s) ao vocabulário e gerados {total} exercício(s)!'
+            )
+        else:
+            messages.warning(request, 'Não foi possível gerar exercícios. Tente novamente.')
+    except Exception as e:
+        messages.error(request, f'Erro ao gerar exercícios: {str(e)}')
+        return redirect('vocab:list')
+    
+    return redirect('exercises:list')

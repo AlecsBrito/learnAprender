@@ -5,15 +5,16 @@ import random
 import requests
 from requests import RequestException
 import os
+import string
 
 
 def translate_text(text: str, target: str = 'en') -> Optional[str]:
-    """Translate text using LibreTranslate public API as a simple free option.
+    """Translate text using multiple APIs with fallback.
 
-    This is a best-effort helper. If the environment has an env var `LIBRETRANSLATE_URL`
-    and `LIBRETRANSLATE_API_KEY`, it will use them; otherwise uses the public endpoint.
+    Tries LibreTranslate first, then falls back to other methods.
     Returns translated text or None on failure.
     """
+    # Try LibreTranslate
     url = os.getenv('LIBRETRANSLATE_URL', 'https://libretranslate.de/translate')
     api_key = os.getenv('LIBRETRANSLATE_API_KEY')
     payload = {
@@ -28,9 +29,26 @@ def translate_text(text: str, target: str = 'en') -> Optional[str]:
         r = requests.post(url, data=payload, timeout=6)
         r.raise_for_status()
         data = r.json()
-        return data.get('translatedText')
+        result = data.get('translatedText')
+        if result:
+            return result
     except Exception:
-        return None
+        pass
+    
+    # Fallback: Try mymemory translation API (free, no auth needed)
+    try:
+        url_fallback = f"https://api.mymemory.translated.net/get?q={text}&langpair=en|{target}"
+        r = requests.get(url_fallback, timeout=5)
+        r.raise_for_status()
+        data = r.json()
+        if data.get('responseStatus') == 200:
+            result = data.get('responseData', {}).get('translatedText')
+            if result and result != text:
+                return result
+    except Exception:
+        pass
+    
+    return None
 
 
 def fetch_dictionary_info(word: str) -> dict:
@@ -145,4 +163,151 @@ def generate_exercises_for_vocab(vocab: Vocabulary, distractor_pool: List[Vocabu
             )
             exercises.append(ex_gap)
 
+    return exercises
+
+
+def get_random_words(count: int = 10) -> List[str]:
+    """Fetch random English words from an API or database.
+    
+    Uses multiple word APIs with fallbacks. Returns list of random words (lowercase).
+    """
+    words = []
+    
+    # Try Random Word API first
+    try:
+        url = "https://random-word-api.herokuapp.com/all"
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        all_words = resp.json()
+        # Filter for reasonable length words (3-10 chars) and common ones
+        filtered = [w for w in all_words if 3 <= len(w) <= 10 and w.isalpha() and not w.isupper()]
+        if len(filtered) >= count:
+            words = random.sample(filtered, count)
+            return words
+    except Exception:
+        pass
+    
+    # If we couldn't get enough, use fallback common words list
+    common_words = [
+        'apple', 'book', 'coffee', 'dream', 'earth', 'forest', 'guitar', 'happy', 
+        'island', 'journey', 'kitchen', 'lemon', 'mountain', 'novel', 'ocean', 'piano',
+        'question', 'rainbow', 'summer', 'table', 'universe', 'village', 'window',
+        'yellow', 'zebra', 'adventure', 'beautiful', 'camera', 'dangerous', 'elephant',
+        'friend', 'generous', 'holiday', 'important', 'justice', 'knowledge', 'language',
+        'medicine', 'nature', 'opinion', 'patience', 'quality', 'research', 'science',
+        'technology', 'understand', 'valuable', 'weather', 'exercise', 'famous', 'grateful',
+        'animal', 'bright', 'color', 'dollar', 'energy', 'family', 'garden', 'history',
+        'leader', 'market', 'office', 'person', 'player', 'reason', 'school', 'server',
+        'silver', 'soldier', 'supply', 'system', 'travel', 'village', 'visitor', 'winter',
+    ]
+    
+    if words:
+        # Combine with common words if we have some
+        all_options = words + common_words
+        return random.sample(all_options, min(count, len(all_options)))
+    
+    return random.sample(common_words, min(count, len(common_words)))
+
+
+def fetch_word_definition_and_translation(word: str, target_lang: str = 'pt') -> tuple:
+    """Fetch definition and translation for a word using public APIs.
+    
+    Returns tuple (definition, translation) or (None, None) if not found.
+    """
+    definition = None
+    translation = None
+    
+    # Fetch definition from Dictionary API
+    try:
+        url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word.lower()}"
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+        if isinstance(data, list) and len(data) > 0:
+            meanings = data[0].get('meanings', [])
+            if meanings:
+                definitions = meanings[0].get('definitions', [])
+                if definitions:
+                    definition = definitions[0].get('definition')
+    except Exception:
+        pass
+    
+    # Fetch translation using LibreTranslate
+    try:
+        translation = translate_text(word, target=target_lang)
+    except Exception:
+        pass
+    
+    return definition, translation
+
+
+def generate_exercises_from_random_words(count: int = 10, user_category: str = '') -> List[Exercise]:
+    """Generate Exercise objects from random words fetched from external APIs.
+    
+    Each word generates:
+    - One translation exercise
+    - One MCQ exercise (if translation found)
+    
+    Returns list of unsaved Exercise objects.
+    """
+    exercises = []
+    random_words = get_random_words(count)
+    
+    for word in random_words:
+        try:
+            definition, translation = fetch_word_definition_and_translation(word)
+            
+            # Skip if no translation found
+            if not translation:
+                continue
+            
+            # Translation exercise
+            question_text = f"Translate: {word}"
+            if definition:
+                question_text += f" — {definition}"
+            
+            ex_trans = Exercise(
+                question=question_text,
+                exercise_type='translate',
+                answer=translation,
+                level='beginner',
+                category=user_category or 'Random',
+            )
+            exercises.append(ex_trans)
+            
+            # Try to create MCQ exercise with random distractors
+            try:
+                # Get a few other words for distractors
+                distractor_words = get_random_words(min(5, max(count - 2, 3)))
+                distractor_translations = []
+                
+                for d_word in distractor_words:
+                    if d_word.lower() == word.lower():
+                        continue
+                    _, d_trans = fetch_word_definition_and_translation(d_word)
+                    if d_trans and d_trans != translation and d_trans.lower() != word.lower():
+                        if len(distractor_translations) < 3:
+                            distractor_translations.append(d_trans)
+                
+                # Only create MCQ if we have at least 2 distractors
+                if len(distractor_translations) >= 2:
+                    choices = distractor_translations + [translation]
+                    random.shuffle(choices)
+                    ex_mcq = Exercise(
+                        question=f"Which is the correct translation for: {word}?",
+                        exercise_type='mcq',
+                        choices=choices,
+                        answer=translation,
+                        level='beginner',
+                        category=user_category or 'Random',
+                    )
+                    exercises.append(ex_mcq)
+            except Exception:
+                # If MCQ generation fails, just skip it and continue
+                pass
+        
+        except Exception:
+            # Skip problematic words and continue with next
+            continue
+    
     return exercises

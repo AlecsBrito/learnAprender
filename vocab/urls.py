@@ -11,4 +11,5 @@ urlpatterns = [
     path('<int:pk>/delete/', views.VocabDeleteView.as_view(), name='delete'),
     path('<int:pk>/generate/', views.generate_exercises_from_vocab, name='generate_exercises'),
     path('generate_all/', views.generate_exercises_from_all, name='generate_all_exercises'),
+    path('generate_random/', views.generate_random_exercises, name='generate_random_exercises'),
 ]

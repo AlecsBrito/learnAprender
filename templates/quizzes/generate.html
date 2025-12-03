@@ -1,27 +1,75 @@
 {% extends 'base.html' %}
 {% block content %}
   <h2>Gerar Quiz</h2>
-  <form method="post">{% csrf_token %}
+  <p class="text-muted">Crie um novo quiz e selecione quantas perguntas deseja. As perguntas serão selecionadas automaticamente com base no tema e nível.</p>
+  
+  <form method="post" class="mb-3" id="generate-form">{% csrf_token %}
     <div class="mb-3">
-      <label>Tema/Categoria</label>
-      <input class="form-control" name="theme" placeholder="ex: food, travel">
+      <label class="form-label">Tema/Categoria (selecione múltiplos com Ctrl/Cmd)</label>
+      <select name="themes" class="form-select" id="themes-select" multiple size="6">
+        {% if categories %}
+          {% for c in categories %}
+            <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+      <div class="form-text">Disponível: <span id="preview-total">—</span> (compartilhados: <span id="preview-shared">—</span>, pessoais: <span id="preview-personal">—</span>)</div>
     </div>
     <div class="mb-3">
-      <label>Nível</label>
-      <input class="form-control" name="level" placeholder="iniciante/intermediate">
+      <label class="form-label">Nível</label>
+      <input class="form-control" name="level" placeholder="ex: iniciante, intermediário, avançado (opcional)">
     </div>
     <div class="mb-3">
-      <label>Quantidade de perguntas</label>
-      <input class="form-control" name="count" value="10" type="number">
+      <label class="form-label">Quantidade de perguntas</label>
+      <input class="form-control" name="count" value="10" type="number" min="1" max="100">
     </div>
     <div class="mb-3">
       <div class="form-check">
         <input class="form-check-input" type="checkbox" id="is_shared" name="is_shared">
         <label class="form-check-label" for="is_shared">
-          Compartilhar este teste com outros usuários
+          Compartilhar este quiz com outros usuários
         </label>
       </div>
     </div>
-    <button class="btn btn-primary" type="submit">Gerar</button>
+    <button class="btn btn-primary" type="submit">Gerar Quiz</button>
+    <a class="btn btn-secondary" href="{% url 'quizzes:index' %}">Cancelar</a>
   </form>
+  <script>
+    (function(){
+      const themesSelect = document.getElementById('themes-select');
+      const levelInput = document.querySelector('input[name="level"]');
+      const previewTotal = document.getElementById('preview-total');
+      const previewShared = document.getElementById('preview-shared');
+      const previewPersonal = document.getElementById('preview-personal');
+
+      function getSelectedThemes() {
+        return Array.from(themesSelect.options).filter(o => o.selected).map(o => o.value);
+      }
+
+      let timeout = null;
+      function refreshPreview(){
+        const params = new URLSearchParams();
+        const themes = getSelectedThemes();
+        themes.forEach(t => params.append('themes', t));
+        if(levelInput && levelInput.value) params.set('level', levelInput.value);
+
+        fetch('{% url "quizzes:generate_preview" %}?'+params.toString(), {credentials: 'same-origin'})
+          .then(r => r.json())
+          .then(data => {
+            previewTotal.textContent = data.total;
+            previewShared.textContent = data.shared;
+            previewPersonal.textContent = data.personal;
+          })
+          .catch(()=>{
+            previewTotal.textContent = '—'; previewShared.textContent='—'; previewPersonal.textContent='—';
+          });
+      }
+
+      themesSelect.addEventListener('change', ()=>{ clearTimeout(timeout); timeout = setTimeout(refreshPreview, 250); });
+      if(levelInput) levelInput.addEventListener('input', ()=>{ clearTimeout(timeout); timeout = setTimeout(refreshPreview, 250); });
+
+      // initial preview on load
+      document.addEventListener('DOMContentLoaded', refreshPreview);
+    })();
+  </script>
 {% endblock %}
