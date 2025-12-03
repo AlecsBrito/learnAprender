@@ -5,6 +5,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .models import Vocabulary
 from .forms import VocabularyForm
 from .utils import generate_exercises_for_vocab
+from .admin_utils import get_paginated_queryset, filter_by_search_and_level, filter_by_category, filter_by_sharing  # Funções compartilhadas
 from exercises.models import Exercise
 from django.db import transaction
 
@@ -17,25 +18,13 @@ def vocab_list_admin(request):
     category = request.GET.get('category')
     shared_filter = request.GET.get('shared')  # 'shared', 'personal', or None for all
     
-    if q:
-        qs = qs.filter(word__icontains=q) | qs.filter(translation__icontains=q)
-    if level:
-        qs = qs.filter(level=level)
-    if category:
-        qs = qs.filter(category__icontains=category)
-    if shared_filter == 'shared':
-        qs = qs.filter(is_shared=True)
-    elif shared_filter == 'personal':
-        qs = qs.filter(is_shared=False)
+    # Usar funções compartilhadas para filtros
+    qs = filter_by_search_and_level(qs, q, level, ['word', 'translation'])
+    qs = filter_by_category(qs, category)
+    qs = filter_by_sharing(qs, shared_filter)
 
-    # Pagination
-    from django.core.paginator import Paginator
-    paginator = Paginator(qs, 25)
-    page_num = request.GET.get('page', 1)
-    try:
-        page_obj = paginator.page(page_num)
-    except:
-        page_obj = paginator.page(1)
+    # Pagination usando função compartilhada
+    page_obj = get_paginated_queryset(qs, request.GET.get('page', 1), per_page=25)
 
     # Bulk actions
     action = request.POST.get('action')

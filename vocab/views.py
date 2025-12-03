@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from .utils import generate_exercises_for_vocab
 from exercises.models import Exercise
+from exercises.utils import deduplicate_exercises  # Função de deduplicação
 from django.db import transaction
 
 
@@ -137,6 +138,9 @@ def generate_exercises_from_vocab(request, pk):
     pool = list(Vocabulary.objects.exclude(pk=pk)[:50])
     generated = generate_exercises_for_vocab(vocab, distractor_pool=pool)
 
+    # Remover duplicatas antes de salvar
+    generated = deduplicate_exercises(generated, user=request.user)
+
     created = []
     with transaction.atomic():
         for ex in generated:
@@ -144,7 +148,10 @@ def generate_exercises_from_vocab(request, pk):
             ex.save()
             created.append(ex)
 
-    messages.success(request, f'Gerado {len(created)} exercício(s) a partir de "{vocab.word}".')
+    if created:
+        messages.success(request, f'Gerado {len(created)} exercício(s) a partir de "{vocab.word}".')
+    else:
+        messages.warning(request, f'Nenhum exercício novo foi criado (todos eram duplicatas).')
     return redirect('vocab:detail', pk=pk)
 
 
@@ -155,16 +162,23 @@ def generate_exercises_from_all(request):
 
     qs = Vocabulary.objects.all()
     total = 0
+    duplicates_skipped = 0
     with transaction.atomic():
         pool = list(qs)
         for v in qs:
             gen = generate_exercises_for_vocab(v, distractor_pool=pool)
+            # Remover duplicatas
+            gen = deduplicate_exercises(gen, user=request.user)
             for ex in gen:
                 ex.created_by = request.user
                 ex.save()
                 total += 1
+            duplicates_skipped += len(generate_exercises_for_vocab(v, distractor_pool=pool)) - len(gen)
 
-    messages.success(request, f'Gerados {total} exercícios a partir do vocabulário.')
+    msg = f'Gerados {total} exercícios a partir do vocabulário.'
+    if duplicates_skipped > 0:
+        msg += f' ({duplicates_skipped} duplicatas foram ignoradas.)'
+    messages.success(request, msg)
     return redirect('vocab:list')
 
 
@@ -214,6 +228,9 @@ def generate_random_exercises(request):
         # Then generate exercises from the created vocabularies
         exercises = generate_exercises_from_random_words(count=count, user_category='Random Words')
         
+        # Remover duplicatas antes de salvar
+        exercises = deduplicate_exercises(exercises, user=request.user)
+        
         total = 0
         with transaction.atomic():
             for ex in exercises:
@@ -228,7 +245,7 @@ def generate_random_exercises(request):
                 f'✨ Adicionadas {vocab_count} palavra(s) ao vocabulário e gerados {total} exercício(s)!'
             )
         else:
-            messages.warning(request, 'Não foi possível gerar exercícios. Tente novamente.')
+            messages.warning(request, 'Não foi possível gerar exercícios (todos eram duplicatas). Tente novamente.')
     except Exception as e:
         messages.error(request, f'Erro ao gerar exercícios: {str(e)}')
         return redirect('vocab:list')
